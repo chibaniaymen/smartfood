@@ -2,7 +2,7 @@
 <div class="page-header">
     <h3 class="fw-bold mb-3">Add New Event</h3>
     <ul class="breadcrumbs">
-        <li class="nav-home"><a href="index.html"><i class="icon-home"></i></a></li>
+        <li class="nav-home"><a href="index.php"><i class="icon-home"></i></a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>
         <li class="nav-item"><a href="events.php?action=list">Events</a></li>
         <li class="separator"><i class="icon-arrow-right"></i></li>

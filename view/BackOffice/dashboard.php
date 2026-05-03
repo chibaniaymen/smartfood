@@ -1,4 +1,5 @@
 <?php
+require_once '../../auth_guard.php';
 require_once '../../config.php';
 require_once '../../controller/EventController.php';
 require_once '../../controller/LocationController.php';

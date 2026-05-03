@@ -139,6 +139,14 @@ $currentAction = $_GET['action'] ?? '';
                 </a>
               </li>
 
+              <!-- Smart Optimization -->
+              <li class="nav-item <?php echo $currentPage == 'optimizer.php' ? 'active' : ''; ?>">
+                <a href="<?php echo $baseUrl; ?>/optimizer.php">
+                  <i class="fas fa-brain"></i>
+                  <p>Smart Optimization</p>
+                </a>
+              </li>
+
               <li class="nav-section">
                 <span class="sidebar-mini-icon">
                   <i class="fa fa-ellipsis-h"></i>
@@ -260,7 +268,7 @@ $currentAction = $_GET['action'] ?? '';
 
               <!-- Website Home -->
               <li class="nav-item">
-                <a href="<?php echo $baseUrl; ?>/index.html">
+                <a href="<?php echo $baseUrl; ?>/index.php">
                   <i class="fas fa-globe"></i>
                   <p>Website Home</p>
                 </a>
@@ -490,8 +498,12 @@ $currentAction = $_GET['action'] ?? '';
                     </div>
                     <span class="profile-username">
                       <span class="op-7">Hi,</span>
-                      <span class="fw-bold">Admin</span>
+                      <span class="fw-bold"><?php echo htmlspecialchars($_SESSION['admin_username'] ?? 'Admin'); ?></span>
                     </span>
+                  </a>
+                  <a href="<?php echo $baseUrl; ?>/logout.php" 
+                     style="background:#e53e3e;color:white;padding:6px 16px; border-radius:6px;text-decoration:none;font-size:13px; transition:all 0.2s; margin-left: 15px;">
+                    Déconnexion
                   </a>
                   <ul class="dropdown-menu dropdown-user animated fadeIn">
                     <div class="dropdown-user-scroll scrollbar-outer">

@@ -5,7 +5,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Feane - Events</title>
+    <title>Feane - My Events</title>
     <link rel="stylesheet" type="text/css" href="view/FrontOffice/css/bootstrap.css" />
     <link href="view/FrontOffice/css/style.css" rel="stylesheet" />
     <link href="view/FrontOffice/css/responsive.css" rel="stylesheet" />
@@ -16,12 +16,14 @@
         <header class="header_section">
             <div class="container">
                 <nav class="navbar navbar-expand-lg custom_nav-container">
-                    <a class="navbar-brand" href="index.html"><span>Feane</span></a>
+                    <a class="navbar-brand" href="index.php"><span>Feane</span></a>
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="navbar-nav mx-auto">
-                            <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
-                            <li class="nav-item active"><a class="nav-link" href="events.php?action=front">Events</a></li>
-                            <li class="nav-item"><a class="nav-link" href="events.php?action=list">Admin</a></li>
+                            <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
+                            <li class="nav-item active"><a class="nav-link" href="events.php?action=front">My Events</a></li>
+                            <li class="nav-item">
+                                <a class="btn btn-warning ml-lg-3" href="view/BackOffice/dashboard.php" style="background-color: #ffbe33; color: white; border-radius: 20px; font-weight: bold;">Admin</a>
+                            </li>
                         </ul>
                     </div>
                 </nav>
@@ -32,7 +34,7 @@
     <section class="food_section layout_padding">
         <div class="container">
             <div class="heading_container heading_center">
-                <h2>Our Events</h2>
+                <h2>My Events</h2>
             </div>
             <div class="row">
                 <?php foreach ($events as $e): ?>

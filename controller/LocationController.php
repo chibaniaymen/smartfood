@@ -10,41 +10,91 @@ class LocationController {
     }
 
     public function list(string $search = '', string $sortBy = 'name', string $order = 'ASC'): array {
-        return Location::searchAndSort($this->db, $search, $sortBy, $order);
+        $allowedSorts = ['id', 'name', 'city', 'country', 'capacity'];
+        $sortBy = in_array($sortBy, $allowedSorts) ? $sortBy : 'name';
+        $order = strtoupper($order) === 'DESC' ? 'DESC' : 'ASC';
+
+        $sql = "SELECT * FROM locations";
+        $params = [];
+
+        if (!empty($search)) {
+            $sql .= " WHERE name LIKE ? OR city LIKE ? OR country LIKE ? OR address LIKE ?";
+            $searchTerm = '%' . $search . '%';
+            $params = [$searchTerm, $searchTerm, $searchTerm, $searchTerm];
+        }
+
+        $sql .= " ORDER BY $sortBy $order";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
     }
 
     public function getStats(): array {
-        return Location::getStatistics($this->db);
+        $stats = [];
+        
+        $stmt = $this->db->query("SELECT COUNT(*) FROM locations");
+        $stats['total'] = $stmt->fetchColumn();
+
+        $stmt = $this->db->query("SELECT SUM(capacity) FROM locations");
+        $stats['total_capacity'] = $stmt->fetchColumn() ?: 0;
+
+        $stmt = $this->db->query("SELECT COUNT(DISTINCT city) FROM locations");
+        $stats['cities'] = $stmt->fetchColumn();
+
+        $stmt = $this->db->query("SELECT MAX(capacity) FROM locations");
+        $stats['max_capacity'] = $stmt->fetchColumn() ?: 0;
+
+        return $stats;
     }
 
     public function show(int $id): ?Location {
-        return Location::getById($this->db, $id);
+        $stmt = $this->db->prepare("SELECT * FROM locations WHERE id = ?");
+        $stmt->execute([$id]);
+        $data = $stmt->fetch();
+        return $data ? new Location($data) : null;
     }
 
     public function add(array $data): ?string {
         $error = $this->validate($data);
         if ($error) return $error;
 
-        $location = new Location($data);
-        if ($location->insert($this->db)) {
-            return null;
-        }
-        return "Failed to insert location.";
+        $sql = "INSERT INTO locations (name, address, city, country, capacity) VALUES (?, ?, ?, ?, ?)";
+        $stmt = $this->db->prepare($sql);
+        
+        $success = $stmt->execute([
+            $data['name'], 
+            $data['address'], 
+            $data['city'], 
+            $data['country'] ?? null, 
+            $data['capacity']
+        ]);
+
+        return $success ? null : "Failed to insert location.";
     }
 
     public function edit(int $id, array $data): ?string {
         $error = $this->validate($data);
         if ($error) return $error;
 
-        $location = new Location(array_merge($data, ['id' => $id]));
-        if ($location->update($this->db)) {
-            return null;
-        }
-        return "Failed to update location.";
+        $sql = "UPDATE locations SET name = ?, address = ?, city = ?, country = ?, capacity = ? WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
+        
+        $success = $stmt->execute([
+            $data['name'], 
+            $data['address'], 
+            $data['city'], 
+            $data['country'] ?? null, 
+            $data['capacity'], 
+            $id
+        ]);
+
+        return $success ? null : "Failed to update location.";
     }
 
     public function delete(int $id): bool {
-        return Location::delete($this->db, $id);
+        $stmt = $this->db->prepare("DELETE FROM locations WHERE id = ?");
+        return $stmt->execute([$id]);
     }
 
     private function validate(array $data): ?string {

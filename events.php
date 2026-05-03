@@ -1,4 +1,5 @@
 <?php
+require_once 'auth_guard.php';
 require_once 'controller/EventController.php';
 require_once 'controller/LocationController.php';
 
@@ -39,6 +40,24 @@ switch ($action) {
         break;
     case 'delete':
         $controller->delete($id);
+        header('Location: events.php?action=list');
+        break;
+    case 'duplicate':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $controller->duplicate($id);
+        }
+        header('Location: events.php?action=list');
+        break;
+    case 'complete':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $controller->complete($id);
+        }
+        header('Location: optimizer.php');
+        break;
+    case 'update_desc':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && $id) {
+            $controller->updateDescription($id, $_POST['description'] ?? '');
+        }
         header('Location: events.php?action=list');
         break;
     case 'front':

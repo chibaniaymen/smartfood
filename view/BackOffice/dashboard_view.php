@@ -1,73 +1,123 @@
 <?php include 'header.php'; $a = $kaiadminAssets; ?>
-<div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
-  <div>
-    <h3 class="fw-bold mb-3">SmartFood Dashboard</h3>
-    <h6 class="op-7 mb-2">Overview of your events &amp; locations</h6>
+<style>
+@keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+.db-page { animation:fadeUp 0.5s ease both; }
+
+/* Header Bar */
+.db-header { background:linear-gradient(135deg,#1a1e2e,#2d3561); border-radius:16px; padding:24px 30px; margin-bottom:24px; position:relative; overflow:hidden; }
+.db-header::before { content:''; position:absolute; top:-40px; right:-40px; width:140px; height:140px; border-radius:50%; background:rgba(102,126,234,0.08); }
+.db-header h3 { color:#fff; font-weight:800; font-size:1.5rem; margin:0; }
+.db-header p { color:rgba(255,255,255,0.45); font-size:0.88rem; margin:4px 0 0; }
+.db-header .btn-hdr { border-radius:10px; font-weight:600; font-size:0.82rem; padding:9px 20px; border:1px solid rgba(255,255,255,0.12); transition:all 0.3s ease; }
+.db-header .btn-hdr:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.2); }
+.db-header .btn-stats-toggle { background:rgba(40,167,69,0.2); color:#55d77a; border-color:rgba(40,167,69,0.3); }
+.db-header .btn-manage { background:rgba(23,162,184,0.2); color:#4dd0e1; border-color:rgba(23,162,184,0.3); }
+.db-header .btn-add-ev { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; border:none; }
+.db-header .btn-add-ev:hover { box-shadow:0 6px 20px rgba(102,126,234,0.4); }
+
+/* 3D Stat Cards */
+.stat3d { border:none; border-radius:18px; overflow:hidden; position:relative; transition:all 0.4s cubic-bezier(.25,.8,.25,1); cursor:default; animation:fadeUp 0.5s ease both; }
+.stat3d:hover { transform:translateY(-8px) scale(1.02); }
+.stat3d .stat3d-bg { padding:26px 22px; position:relative; z-index:1; color:#fff; }
+.stat3d .stat3d-icon { width:56px; height:56px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; color:#fff; background:rgba(255,255,255,0.2); backdrop-filter:blur(8px); box-shadow:0 8px 20px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.3); border:1px solid rgba(255,255,255,0.25); }
+.stat3d .stat3d-value { font-size:2.2rem; font-weight:800; line-height:1; text-shadow:0 2px 8px rgba(0,0,0,0.12); }
+.stat3d .stat3d-label { font-size:0.78rem; opacity:0.85; font-weight:500; letter-spacing:0.5px; text-transform:uppercase; }
+.stat3d::before { content:''; position:absolute; top:-35px; right:-35px; width:110px; height:110px; border-radius:50%; background:rgba(255,255,255,0.07); z-index:0; }
+.stat3d::after { content:''; position:absolute; bottom:-25px; left:-15px; width:70px; height:70px; border-radius:50%; background:rgba(255,255,255,0.05); z-index:0; }
+.stat3d .stat3d-bar { height:4px; border-radius:2px; background:rgba(255,255,255,0.18); margin-top:12px; overflow:hidden; }
+.stat3d .stat3d-bar-fill { height:100%; border-radius:2px; background:rgba(255,255,255,0.55); }
+
+/* Tables Premium */
+.db-page .card { border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.06); overflow:hidden; }
+.db-page .table thead { background:linear-gradient(135deg,#1a1e2e,#2d3561); }
+.db-page .table thead th { color:#c8d0e0 !important; font-weight:600; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.7px; padding:13px 12px; border:none; }
+.db-page .table tbody tr { transition:all 0.2s ease; border-left:3px solid transparent; }
+.db-page .table tbody tr:hover { background:#f7f8fc !important; border-left-color:#667eea; }
+.db-page .table tbody td { padding:12px; vertical-align:middle; color:#525f7f; font-size:0.88rem; }
+.db-page .badge { font-size:0.73rem; padding:5px 12px; border-radius:6px; font-weight:600; }
+.db-page .badge.bg-success { background:linear-gradient(135deg,#28a745,#55d77a) !important; }
+.db-page .badge.bg-danger { background:linear-gradient(135deg,#dc3545,#ff6b6b) !important; }
+.db-page .badge.bg-secondary { background:linear-gradient(135deg,#6c757d,#adb5bd) !important; }
+
+/* Team Members */
+.db-page .item-list { transition:all 0.2s ease; border-radius:10px; padding:6px 8px; margin:0 -8px; }
+.db-page .item-list:hover { background:#f7f8fc; }
+.db-page .item-list .avatar-img { border:2px solid #eef0f8; transition:all 0.3s ease; }
+.db-page .item-list:hover .avatar-img { border-color:#667eea; transform:scale(1.08); }
+
+/* Gallery */
+.db-page .img-fluid { border-radius:12px !important; transition:all 0.3s ease; }
+.db-page .img-fluid:hover { transform:scale(1.05); box-shadow:0 8px 25px rgba(0,0,0,0.15); }
+</style>
+
+<div class="db-page">
+
+<!-- Premium Header -->
+<div class="db-header d-flex align-items-center flex-column flex-md-row gap-3">
+  <div class="flex-grow-1">
+    <h3><i class="fas fa-tachometer-alt me-2" style="color:#667eea;"></i>SmartFood Dashboard</h3>
+    <p>Overview of your events & locations — real-time analytics</p>
   </div>
-  <div class="ms-md-auto py-2 py-md-0">
-    <button class="btn btn-success btn-round me-2" type="button" data-bs-toggle="collapse" data-bs-target="#chartsCollapse" aria-expanded="false" aria-controls="chartsCollapse">
-      <i class="fas fa-chart-line"></i> Afficher les Statistiques
+  <div class="d-flex gap-2 flex-wrap">
+    <button class="btn btn-hdr btn-stats-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#chartsCollapse">
+      <i class="fas fa-chart-line me-1"></i> Statistiques
     </button>
-    <a href="<?php echo $baseUrl; ?>/events.php?action=list" class="btn btn-label-info btn-round me-2">Manage Events</a>
-    <a href="<?php echo $baseUrl; ?>/events.php?action=add" class="btn btn-primary btn-round">Add Event</a>
+    <a href="<?php echo $baseUrl; ?>/events.php?action=list" class="btn btn-hdr btn-manage">
+      <i class="fas fa-list me-1"></i> Manage Events
+    </a>
+    <a href="<?php echo $baseUrl; ?>/events.php?action=add" class="btn btn-hdr btn-add-ev">
+      <i class="fas fa-plus me-1"></i> Add Event
+    </a>
   </div>
 </div>
 
-<!-- Stats Cards -->
-<div class="row">
-  <div class="col-sm-6 col-md-3">
-    <div class="card card-stats card-round">
-      <div class="card-body">
-        <div class="row align-items-center">
-          <div class="col-icon">
-            <div class="icon-big text-center icon-primary bubble-shadow-small"><i class="fas fa-calendar-alt"></i></div>
-          </div>
-          <div class="col col-stats ms-3 ms-sm-0">
-            <div class="numbers"><p class="card-category">Total Events</p><h4 class="card-title"><?= $totalEvents ?></h4></div>
-          </div>
+<!-- 3D Stats -->
+<div class="row mb-3">
+  <div class="col-sm-6 col-md-3 mb-3">
+    <div class="stat3d" style="animation-delay:0s;">
+      <div class="stat3d-bg" style="background:linear-gradient(135deg,#667eea,#764ba2); box-shadow:0 10px 30px rgba(102,126,234,0.35);">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="stat3d-icon"><i class="fas fa-calendar-alt"></i></div>
+          <div class="text-end"><div class="stat3d-value"><?= $totalEvents ?></div></div>
         </div>
+        <div class="stat3d-label">Total Events</div>
+        <div class="stat3d-bar"><div class="stat3d-bar-fill" style="width:100%;"></div></div>
       </div>
     </div>
   </div>
-  <div class="col-sm-6 col-md-3">
-    <div class="card card-stats card-round">
-      <div class="card-body">
-        <div class="row align-items-center">
-          <div class="col-icon">
-            <div class="icon-big text-center icon-info bubble-shadow-small"><i class="fas fa-map-marker-alt"></i></div>
-          </div>
-          <div class="col col-stats ms-3 ms-sm-0">
-            <div class="numbers"><p class="card-category">Locations</p><h4 class="card-title"><?= $totalLocations ?></h4></div>
-          </div>
+  <div class="col-sm-6 col-md-3 mb-3">
+    <div class="stat3d" style="animation-delay:0.1s;">
+      <div class="stat3d-bg" style="background:linear-gradient(135deg,#11998e,#38ef7d); box-shadow:0 10px 30px rgba(17,153,142,0.35);">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="stat3d-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="text-end"><div class="stat3d-value"><?= $totalLocations ?></div></div>
         </div>
+        <div class="stat3d-label">Locations</div>
+        <div class="stat3d-bar"><div class="stat3d-bar-fill" style="width:<?= $totalLocations > 0 ? min(100, $totalLocations * 20) : 0 ?>%;"></div></div>
       </div>
     </div>
   </div>
-  <div class="col-sm-6 col-md-3">
-    <div class="card card-stats card-round">
-      <div class="card-body">
-        <div class="row align-items-center">
-          <div class="col-icon">
-            <div class="icon-big text-center icon-success bubble-shadow-small"><i class="fas fa-check-circle"></i></div>
-          </div>
-          <div class="col col-stats ms-3 ms-sm-0">
-            <div class="numbers"><p class="card-category">Active Events</p><h4 class="card-title"><?= $activeEvents ?></h4></div>
-          </div>
+  <div class="col-sm-6 col-md-3 mb-3">
+    <div class="stat3d" style="animation-delay:0.2s;">
+      <div class="stat3d-bg" style="background:linear-gradient(135deg,#f7971e,#ffd200); box-shadow:0 10px 30px rgba(247,151,30,0.35);">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="stat3d-icon"><i class="fas fa-check-circle"></i></div>
+          <div class="text-end"><div class="stat3d-value"><?= $activeEvents ?></div></div>
         </div>
+        <div class="stat3d-label">Active Events</div>
+        <div class="stat3d-bar"><div class="stat3d-bar-fill" style="width:<?= $totalEvents > 0 ? round(($activeEvents/$totalEvents)*100) : 0 ?>%;"></div></div>
       </div>
     </div>
   </div>
-  <div class="col-sm-6 col-md-3">
-    <div class="card card-stats card-round">
-      <div class="card-body">
-        <div class="row align-items-center">
-          <div class="col-icon">
-            <div class="icon-big text-center icon-secondary bubble-shadow-small"><i class="fas fa-users"></i></div>
-          </div>
-          <div class="col col-stats ms-3 ms-sm-0">
-            <div class="numbers"><p class="card-category">Total Capacity</p><h4 class="card-title"><?= number_format($totalCapacity) ?></h4></div>
-          </div>
+  <div class="col-sm-6 col-md-3 mb-3">
+    <div class="stat3d" style="animation-delay:0.3s;">
+      <div class="stat3d-bg" style="background:linear-gradient(135deg,#ee5a24,#f0932b); box-shadow:0 10px 30px rgba(238,90,36,0.35);">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="stat3d-icon"><i class="fas fa-users"></i></div>
+          <div class="text-end"><div class="stat3d-value"><?= number_format($totalCapacity) ?></div></div>
         </div>
+        <div class="stat3d-label">Total Capacity</div>
+        <div class="stat3d-bar"><div class="stat3d-bar-fill" style="width:80%;"></div></div>
       </div>
     </div>
   </div>
@@ -133,7 +183,7 @@
       <div class="card-body p-0">
         <div class="table-responsive">
           <table class="table align-items-center mb-0">
-            <thead class="thead-light">
+            <thead>
               <tr><th>ID</th><th>Title</th><th>Date</th><th>Location</th><th>Price</th><th>Status</th><th>Actions</th></tr>
             </thead>
             <tbody>
@@ -219,7 +269,7 @@
       <div class="card-body p-0">
         <div class="table-responsive">
           <table class="table align-items-center mb-0">
-            <thead class="thead-light">
+            <thead>
               <tr><th>ID</th><th>Name</th><th>Address</th><th>City</th><th>Country</th><th>Capacity</th><th>Actions</th></tr>
             </thead>
             <tbody>
@@ -415,6 +465,7 @@
   </div>
 </div>
 
+</div><!-- /db-page -->
 <?php include 'footer.php'; ?>
 
 <!-- Dashboard Charts Script -->
