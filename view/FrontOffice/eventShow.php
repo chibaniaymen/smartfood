@@ -20,7 +20,7 @@
             background-image: url('view/FrontOffice/images/hero-bg.jpg');
             background-size: cover;
             background-position: center;
-            filter: blur(25px) brightness(0.35);
+            filter: blur(25px) brightness(0.25) grayscale(0.3);
             z-index: -1;
             transform: scale(1.1);
         }
@@ -36,7 +36,7 @@
             flex-grow: 1;
         }
         .glass-box {
-            background-color: rgba(30, 30, 40, 0.75) !important;
+            background-color: rgba(15, 15, 20, 0.8) !important;
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-top: 6px solid #ffbe33 !important;
@@ -54,7 +54,7 @@
             left: 0;
             width: 100%;
             height: 6px;
-            background: linear-gradient(90deg, #f5a623, #ff4b2b, #f5a623);
+            background: linear-gradient(90deg, #f5a623, #d48c1a, #f5a623);
             border-radius: 20px 20px 0 0;
             z-index: 10;
         }

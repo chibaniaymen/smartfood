@@ -14,7 +14,7 @@
     
     <style>
         :root {
-            --bg-dark: #1a1a2e;
+            --bg-dark: #0f0f12;
             --accent-gold: #f5a623;
             --glass-bg: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.08);
@@ -39,10 +39,10 @@
             transition: all 0.4s ease;
         }
         .navbar-custom.scrolled {
-            background-color: rgba(26, 26, 46, 0.95);
-            backdrop-filter: blur(10px);
+            background-color: rgba(10, 10, 12, 0.98);
+            backdrop-filter: blur(15px);
             padding: 10px 0;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
             border-bottom: 1px solid var(--glass-border);
         }
         .navbar-brand {
@@ -85,7 +85,7 @@
         /* Parallax Hero */
         .hero-section {
             height: 100vh;
-            background-image: linear-gradient(to bottom, rgba(26, 26, 46, 0.7), rgba(26, 26, 46, 1)), url('view/FrontOffice/images/hero-bg.jpg');
+            background-image: linear-gradient(to bottom, rgba(10, 10, 15, 0.6), rgba(15, 15, 18, 1)), url('view/FrontOffice/images/hero-bg.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed; /* Parallax effect */
@@ -297,7 +297,7 @@
             position: absolute;
             bottom: -25px;
             right: 25px;
-            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            background: linear-gradient(45deg, #f5a623 0%, #ffbe33 100%);
             color: #fff;
             padding: 12px 25px;
             border-radius: 30px 5px 30px 5px; /* Creative morphing shape */
@@ -314,7 +314,7 @@
         .event-card:hover .price-pill {
             transform: translateY(-8px) scale(1.05);
             border-radius: 5px 30px 5px 30px; /* Shape shifts on hover! */
-            background: linear-gradient(45deg, #f5576c 0%, #f093fb 100%);
+            background: linear-gradient(45deg, #ffbe33 0%, #f5a623 100%);
             box-shadow: 0 15px 30px rgba(245, 87, 108, 0.6);
             border-color: #fff;
         }
@@ -447,7 +447,7 @@
 
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 10px; }
-        ::-webkit-scrollbar-track { background: #0a0a1a; }
+        ::-webkit-scrollbar-track { background: #050505; }
         ::-webkit-scrollbar-thumb { 
             background: linear-gradient(to bottom, #222, var(--accent-gold)); 
             border-radius: 10px; 
@@ -510,7 +510,7 @@
             right: 0;
             margin-top: 5px;
             z-index: 99;
-            background: rgba(30, 30, 50, 0.95);
+            background: rgba(15, 15, 18, 0.95);
             backdrop-filter: blur(15px);
             border: 1px solid var(--glass-border);
             border-radius: 15px;

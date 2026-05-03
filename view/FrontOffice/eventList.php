@@ -39,7 +39,7 @@
             <div class="row">
                 <?php foreach ($events as $e): ?>
                 <div class="col-sm-6 col-lg-4 mb-4">
-                    <div class="box" style="background-color: #222831; color: white; border-radius: 15px; padding: 25px;">
+                    <div class="box" style="background-color: #121212; border: 1px solid rgba(255,255,255,0.05); color: white; border-radius: 15px; padding: 25px;">
                         <div class="detail-box">
                             <h5 style="color: #ffbe33;"><?php echo htmlspecialchars($e['title']); ?></h5>
                             <p><?php echo substr(htmlspecialchars($e['description']), 0, 100); ?>...</p>
