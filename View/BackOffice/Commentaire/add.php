@@ -1,15 +1,15 @@
 <?php
 define('BO_ACCESS', true);
 require_once __DIR__ . '/../../../config.php';
-require_once __DIR__ . '/../../../Model/Commentaire.php';
-require_once __DIR__ . '/../../../Model/Article.php';
+
+
 require_once __DIR__ . '/../../../Controller/CommentaireController.php';
 require_once __DIR__ . '/../../../Controller/ArticleController.php';
 
-$commentaireModel      = new Commentaire($pdo);
-$articleModel          = new Article($pdo);
-$commentaireController = new CommentaireController($commentaireModel);
-$articleController     = new ArticleController($articleModel);
+
+
+$commentaireController = new CommentaireController($pdo);
+$articleController     = new ArticleController($pdo);
 
 $articles = $articleController->getAll();
 
@@ -153,3 +153,4 @@ window.addEventListener('load', function() {
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
+

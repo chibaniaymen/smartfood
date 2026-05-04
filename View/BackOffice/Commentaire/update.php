@@ -1,11 +1,11 @@
 <?php
 define('BO_ACCESS', true);
 require_once __DIR__ . '/../../../config.php';
-require_once __DIR__ . '/../../../Model/Commentaire.php';
+
 require_once __DIR__ . '/../../../Controller/CommentaireController.php';
 
-$commentaireModel      = new Commentaire($pdo);
-$commentaireController = new CommentaireController($commentaireModel);
+
+$commentaireController = new CommentaireController($pdo);
 
 if (!isset($_GET['id']) || !isValidId($_GET['id'])) {
     header('Location: list.php'); exit;
@@ -15,12 +15,17 @@ $commentaire = $commentaireController->getById($id);
 if (!$commentaire) { header('Location: list.php'); exit; }
 
 $error    = '';
-$formData = ['author' => $commentaire['author'], 'content' => $commentaire['content']];
+$formData = [
+    'author'  => $commentaire['author'], 
+    'content' => $commentaire['content'],
+    'status'  => $commentaire['status']
+];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $formData = [
         'author'  => trim($_POST['author']  ?? ''),
         'content' => trim($_POST['content'] ?? ''),
+        'status'  => $_POST['status']  ?? 'approved',
     ];
     
     $result = $commentaireController->update($id, $formData);
@@ -68,6 +73,15 @@ require_once __DIR__ . '/../includes/header.php';
                 style="border-radius:8px;line-height:1.7;"><?php echo htmlspecialchars($formData['content']); ?></textarea>
       <div class="text-danger small mt-1" id="err-content" style="display:none;"></div>
       <div class="text-end text-muted" style="font-size:.78rem;margin-top:4px;" id="charCount">0 / 1000</div>
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label fw-semibold">Statut de modération</label>
+      <select name="status" class="form-select" style="border-radius:8px;">
+        <option value="approved" <?php echo $formData['status'] === 'approved' ? 'selected' : ''; ?>>Approuvé (visible)</option>
+        <option value="pending" <?php echo $formData['status'] === 'pending' ? 'selected' : ''; ?>>En attente</option>
+        <option value="rejected" <?php echo $formData['status'] === 'rejected' ? 'selected' : ''; ?>>Rejeté (masqué)</option>
+      </select>
     </div>
 
     <div class="d-flex gap-2">
@@ -125,3 +139,4 @@ window.addEventListener('load', function() {
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
+

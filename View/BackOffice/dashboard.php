@@ -1,15 +1,15 @@
 <?php
 define('BO_ACCESS', true);
 require_once __DIR__ . '/../../config.php';
-require_once __DIR__ . '/../../Model/Article.php';
-require_once __DIR__ . '/../../Model/Commentaire.php';
+
+
 require_once __DIR__ . '/../../Controller/ArticleController.php';
 require_once __DIR__ . '/../../Controller/CommentaireController.php';
 
-$articleModel          = new Article($pdo);
-$commentaireModel      = new Commentaire($pdo);
-$articleController     = new ArticleController($articleModel);
-$commentaireController = new CommentaireController($commentaireModel);
+
+
+$articleController     = new ArticleController($pdo);
+$commentaireController = new CommentaireController($pdo);
 
 $pageTitle  = 'Tableau de bord';
 $activeMenu = 'dashboard';
@@ -80,14 +80,14 @@ $topArticles= $articleController->getTopCommented(5); // Partie Métier: Stats
       <div class="card-body">
         <div class="row align-items-center">
           <div class="col-icon">
-            <div class="icon-big text-center icon-success bubble-shadow-small">
-              <i class="fas fa-code-branch"></i>
+            <div class="icon-big text-center icon-secondary bubble-shadow-small">
+              <i class="fas fa-file-export"></i>
             </div>
           </div>
           <div class="col col-stats ms-3 ms-sm-0">
             <div class="numbers">
-              <p class="card-category">Jointures SQL</p>
-              <h4 class="card-title">INNER JOIN</h4>
+              <p class="card-category">Exportations</p>
+              <h4 class="card-title">Disponibles</h4>
             </div>
           </div>
         </div>
@@ -159,8 +159,8 @@ $topArticles= $articleController->getTopCommented(5); // Partie Métier: Stats
           <a href="Commentaire/list.php" class="btn btn-info btn-round w-100">
             <i class="fas fa-comments me-2"></i> Voir les commentaires
           </a>
-          <a href="Jointure/list.php" class="btn btn-warning btn-round w-100">
-            <i class="fas fa-code-branch me-2"></i> Jointure SQL
+          <a href="Jointure/export_data.php" class="btn btn-warning btn-round w-100">
+            <i class="fas fa-file-export me-2"></i> Exportation CSV
           </a>
           <a href="../FrontOffice/index.php" target="_blank" class="btn btn-label-success btn-round w-100">
             <span class="btn-label"><i class="fas fa-external-link-alt"></i></span> Voir le site
@@ -180,6 +180,66 @@ $topArticles= $articleController->getTopCommented(5); // Partie Métier: Stats
       </div>
     </div>
   </div>
+</div>
+
+<!-- ── MÉTIER AVANCÉ : TRENDING & ACTIONS GLOBALES ──────────────── -->
+<div class="row">
+
+  <!-- Articles Trending (Score d'engagement) -->
+  <div class="col-md-8">
+    <div class="card card-round" style="border-top: 5px solid #ff9800;">
+      <div class="card-header">
+        <div class="card-head-row">
+          <div class="card-title"><i class="fas fa-fire text-warning me-2"></i>Articles en vogue (Top Engagement)</div>
+        </div>
+        <div class="card-category">Basé sur les commentaires et le sentiment positif</div>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <?php 
+          $trending = $articleController->getTrendingArticles(3);
+          foreach($trending as $art): 
+            $readTime = $articleController->calculateReadTime($art['content']);
+          ?>
+          <div class="col-md-4">
+            <div class="p-3 border rounded h-100 bg-white shadow-sm">
+              <div class="d-flex justify-content-between mb-2">
+                <span class="badge bg-warning text-dark"><i class="fas fa-star"></i> Trending</span>
+                <small class="text-muted"><i class="far fa-clock"></i> <?php echo $readTime; ?> min</small>
+              </div>
+              <h6 class="fw-bold text-truncate"><?php echo htmlspecialchars($art['title']); ?></h6>
+              <div class="small text-muted mb-3">
+                <i class="fas fa-comments"></i> <?php echo $art['comment_count']; ?> coms
+              </div>
+              <a href="../FrontOffice/article.php?id=<?php echo $art['id']; ?>" target="_blank" class="btn btn-xs btn-outline-warning w-100">Voir</a>
+            </div>
+          </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions de Masse (Nettoyage Intelligent) -->
+  <div class="col-md-4">
+    <div class="card card-round bg-dark text-white">
+      <div class="card-header">
+        <div class="card-title text-white">Nettoyage Intelligent</div>
+      </div>
+      <div class="card-body">
+        <p class="small op-7">Optimisez votre base de données en supprimant le contenu indésirable.</p>
+        <form method="POST" action="Commentaire/list.php?action=purge">
+           <button type="submit" class="btn btn-danger w-100 mb-2" onclick="return confirm('Supprimer définitivement tous les commentaires REJETÉS ?')">
+             <i class="fas fa-broom me-2"></i> Purger les rejets
+           </button>
+        </form>
+        <div class="alert alert-info py-2 small mb-0" style="background:rgba(255,255,255,0.1); border:none;">
+           <i class="fas fa-info-circle"></i> Cette action est irréversible.
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ── TABLEAUX ───────────────────────────────────────────── -->
@@ -321,3 +381,4 @@ JS;
 ?>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
+

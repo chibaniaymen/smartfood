@@ -1,11 +1,11 @@
 <?php
 define('BO_ACCESS', true);
 require_once __DIR__ . '/../../../config.php';
-require_once __DIR__ . '/../../../Model/Article.php';
+
 require_once __DIR__ . '/../../../Controller/ArticleController.php';
 
-$articleModel      = new Article($pdo);
-$articleController = new ArticleController($articleModel);
+
+$articleController = new ArticleController($pdo);
 
 if (!isset($_GET['id']) || !isValidId($_GET['id'])) {
     header('Location: list.php'); exit;
@@ -15,12 +15,19 @@ $article = $articleController->getById($id);
 if (!$article) { header('Location: list.php'); exit; }
 
 $error    = '';
-$formData = ['title' => $article['title'], 'content' => $article['content']];
+$formData = [
+    'title'   => $article['title'], 
+    'content' => $article['content'],
+    'status'  => $article['status'],
+    'tags'    => $article['tags']
+];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $formData = [
         'title'   => trim($_POST['title']   ?? ''),
         'content' => trim($_POST['content'] ?? ''),
+        'status'  => $_POST['status']  ?? 'published',
+        'tags'    => trim($_POST['tags']    ?? ''),
     ];
     $result = $articleController->update($id, $formData);
     if ($result['success']) {
@@ -63,6 +70,22 @@ require_once __DIR__ . '/../includes/header.php';
                 style="border-radius:8px;line-height:1.7;"><?php echo htmlspecialchars($formData['content']); ?></textarea>
       <div class="text-danger small mt-1" id="err-content" style="display:none;"></div>
       <div class="text-end text-muted" style="font-size:.78rem;margin-top:4px;" id="wordCount">0 mot(s)</div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Statut de publication</label>
+        <select name="status" class="form-select" style="border-radius:8px;">
+          <option value="published" <?php echo $formData['status'] === 'published' ? 'selected' : ''; ?>>Publié (visible sur le site)</option>
+          <option value="draft" <?php echo $formData['status'] === 'draft' ? 'selected' : ''; ?>>Brouillon (masqué)</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Étiquettes (Tags)</label>
+        <input type="text" name="tags" class="form-control" placeholder="Ex: Santé, Recette, Vegan"
+               value="<?php echo htmlspecialchars($formData['tags']); ?>" style="border-radius:8px;">
+        <div class="text-muted small mt-1">Séparez les tags par des virgules.</div>
+      </div>
     </div>
 
     <div class="d-flex gap-2">
@@ -117,3 +140,4 @@ window.addEventListener('load', function() {
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
+

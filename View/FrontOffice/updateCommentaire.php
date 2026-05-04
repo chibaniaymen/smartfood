@@ -1,10 +1,10 @@
 <?php
 require_once __DIR__ . '/../../config.php';
-require_once __DIR__ . '/../../Model/Commentaire.php';
+
 require_once __DIR__ . '/../../Controller/CommentaireController.php';
 
-$commentaireModel      = new Commentaire($pdo);
-$commentaireController = new CommentaireController($commentaireModel);
+
+$commentaireController = new CommentaireController($pdo);
 
 $id = $_GET['id'] ?? null;
 if (!$id || !isValidId((int)$id)) {
@@ -122,3 +122,4 @@ document.getElementById('content').addEventListener('input', function() { if (th
 
 </body>
 </html>
+

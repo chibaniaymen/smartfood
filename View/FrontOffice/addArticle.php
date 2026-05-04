@@ -1,10 +1,10 @@
 <?php
 require_once __DIR__ . '/../../config.php';
-require_once __DIR__ . '/../../Model/Article.php';
+
 require_once __DIR__ . '/../../Controller/ArticleController.php';
 
-$articleModel      = new Article($pdo);
-$articleController = new ArticleController($articleModel);
+
+$articleController = new ArticleController($pdo);
 
 $error    = '';
 $formData = ['title' => '', 'content' => ''];
@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $formData = [
         'title'   => trim($_POST['title']   ?? ''),
         'content' => trim($_POST['content'] ?? ''),
+        'status'  => 'draft'
     ];
     $result = $articleController->create($formData);
     if ($result['success']) {
@@ -117,3 +118,4 @@ document.getElementById('content').addEventListener('input', function() { if (th
 
 </body>
 </html>
+

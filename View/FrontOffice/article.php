@@ -1,26 +1,27 @@
 <?php
 require_once __DIR__ . '/../../config.php';
-require_once __DIR__ . '/../../Model/Article.php';
-require_once __DIR__ . '/../../Model/Commentaire.php';
+
+
 require_once __DIR__ . '/../../Controller/ArticleController.php';
 require_once __DIR__ . '/../../Controller/CommentaireController.php';
 
-$articleModel          = new Article($pdo);
-$commentaireModel      = new Commentaire($pdo);
-$articleController     = new ArticleController($articleModel);
-$commentaireController = new CommentaireController($commentaireModel);
+
+
+$articleController     = new ArticleController($pdo);
+$commentaireController = new CommentaireController($pdo);
 
 if (!isset($_GET['id']) || !isValidId($_GET['id'])) redirect('index.php');
 $articleId = (int)$_GET['id'];
 $article   = $articleController->getById($articleId);
-if (!$article) redirect('index.php');
+if (!$article || $article['status'] !== 'published') redirect('index.php');
 
-$comments    = $commentaireController->getByArticle($articleId);
-$allArticles = $articleController->getAll();
-$related     = array_slice(
-    array_values(array_filter($allArticles, fn($a) => $a['id'] != $articleId)),
-    0, 3
-);
+$comments    = $commentaireController->getByArticle($articleId, true); // Only approved
+
+// Tracking de la vue
+$articleController->trackView($articleId);
+
+// Métier Avancé: Recommandations IA Hybride
+$aiRecommendations = $articleController->recommendations($articleId);
 
 $errors   = [];
 $success  = '';
@@ -33,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_comment'])) {
     if ($result['success']) {
         $success  = $result['message'];
         $formData = ['author' => '', 'content' => ''];
-        $comments = $commentaireController->getByArticle($articleId);
+        $comments = $commentaireController->getByArticle($articleId, true);
     } else {
         $errors['general'] = $result['message'];
     }
@@ -158,27 +159,67 @@ $icon     = $icons[$article['id'] % count($icons)];
   <div class="reading-progress-bar" id="progressBar"></div>
 </div>
 
-<nav class="navbar navbar-expand-lg custom_nav-container">
-  <a class="navbar-brand" href="index.php" style="font-size:1.5rem;font-weight:800;">Smart<span style="color:#f7941d;">Food</span></a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav mx-auto">
-      <li class="nav-item"><a class="nav-link" href="index.php">Accueil</a></li>
-      <li class="nav-item active"><a class="nav-link" href="index.php">Blog</a></li>
-      <li class="nav-item"><a class="nav-link" href="searchCommentaires.php">Commentaires</a></li>
-    </ul>
-    <div class="user_option">
-      <a href="index.php" class="order_online_btn" style="background:transparent;border:2px solid #fff;margin-right:10px;">
-        <i class="fa fa-arrow-left me-1"></i> Retour
-      </a>
-      <a href="../../View/BackOffice/dashboard.php" class="order_online_btn">
-        <i class="fa fa-cog me-1"></i> Admin
-      </a>
+  <!-- ════ NAVBAR ════ -->
+  <header class="header_section" style="background-color: #222831;">
+    <div class="container-fluid">
+      <nav class="navbar navbar-expand-lg custom_nav-container">
+
+        <a class="navbar-brand" href="index.php">
+          <span>SmartFood</span>
+        </a>
+
+        <button class="navbar-toggler" type="button"
+                data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+          <span></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="index.php">Accueil</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="index.php#articles">Articles</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="index.php#about">À propos</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="searchCommentaires.php">Commentaires</a>
+            </li>
+            <li class="nav-item active">
+              <a class="nav-link" href="addArticle.php">Blog <span class="sr-only">(current)</span></a>
+            </li>
+          </ul>
+
+          <div class="user_option">
+            <a href="#" class="user_link">
+              <i class="fa fa-user" aria-hidden="true"></i>
+            </a>
+            <a href="#" class="cart_link">
+              <svg version="1.1" xmlns="http://www.w3.org/2000/svg"
+                   xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                   viewBox="0 0 100 100" xml:space="preserve">
+                <g><path d="M75,67H31L20.3,25.5C20.1,24.6,19.3,24,18.4,24H10c-1.1,0-2,0.9-2,2s0.9,2,2,2h6.9L27.6,69.5c0.2,0.9,1,1.5,1.9,1.5h45.5
+                   c1.1,0,2-0.9,2-2S76.1,67,75,67z"/><circle cx="35" cy="76" r="4"/><circle cx="69" cy="76" r="4"/>
+                  <path d="M78.3,28H27.9l2.9,10H72c0.9,0,1.7,0.6,1.9,1.5l5,18c0.1,0.6,0,1.2-0.4,1.7C78.2,59.6,77.6,60,77,60H31c-1.1,0-2,0.9-2,2
+                   s0.9,2,2,2h46.8c1.9,0,3.6-0.9,4.8-2.4c1.1-1.5,1.5-3.4,1-5.2l-5.4-19C78,28,78.2,28,78.3,28z"/></g>
+              </svg>
+            </a>
+            <a href="#" class="nav_search-btn">
+              <i class="fa fa-search" aria-hidden="true"></i>
+            </a>
+            <a href="../../View/BackOffice/dashboard.php" class="order_online_btn">
+              Administration
+            </a>
+          </div>
+        </div>
+      </nav>
     </div>
-  </div>
-</nav>
+  </header>
+  <!-- ════ END NAVBAR ════ -->
 
 <div class="article-hero">
   <div class="article-hero-icon"><?php echo $icon; ?></div>
@@ -193,16 +234,384 @@ $icon     = $icons[$article['id'] % count($icons)];
 </div>
 
 <div class="article-layout">
-  <main>
+
+
     <article class="article-body" id="articleBody">
       <p class="article-lead"><?php echo h(substr($article['content'], 0, 200)); ?>…</p>
-      <div class="article-content"><?php echo nl2br(h(substr($article['content'], 200))); ?></div>
-
-      <div class="share-bar">
-        <span>Partager :</span>
-        <a href="#" class="share-btn tw"><i class="fa fa-twitter"></i> Twitter</a>
-        <a href="#" class="share-btn fb"><i class="fa fa-facebook"></i> Facebook</a>
+      
+      <!-- AI Voice Reader Component (Premium Feature) -->
+      <div class="ai-reader-box" style="background: linear-gradient(135deg, #f8f9fa, #ffffff); border: 1px solid #e9ecef; border-radius: 12px; padding: 15px 20px; margin-bottom: 30px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+        <button id="btnPlaySpeech" style="width: 45px; height: 45px; border-radius: 50%; background: #2D6A4F; border: none; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(45, 106, 79, 0.3);">
+            <i class="fa fa-play" id="playIcon"></i>
+        </button>
+        <div style="flex: 1;">
+            <div style="font-weight: 700; color: #1a1a2e; font-size: 0.95rem; margin-bottom: 2px; display: flex; align-items: center; gap: 8px;">
+                Écouter l'article <span style="background: #E76F51; color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">AI Voice</span>
+            </div>
+            <div style="font-size: 0.8rem; color: #6c757d;" id="speechStatus">Appuyez sur play pour démarrer la lecture audio.</div>
+        </div>
+        <div style="width: 60px; height: 30px; display: flex; align-items: center; justify-content: space-between;" class="audio-waves" id="audioWaves">
+            <!-- Animated bars injected via JS when playing -->
+            <span style="width:4px; height:4px; background:#2D6A4F; border-radius:2px; display:inline-block;"></span>
+            <span style="width:4px; height:4px; background:#2D6A4F; border-radius:2px; display:inline-block;"></span>
+            <span style="width:4px; height:4px; background:#2D6A4F; border-radius:2px; display:inline-block;"></span>
+            <span style="width:4px; height:4px; background:#2D6A4F; border-radius:2px; display:inline-block;"></span>
+            <span style="width:4px; height:4px; background:#2D6A4F; border-radius:2px; display:inline-block;"></span>
+        </div>
       </div>
+
+      <div class="article-content" id="mainContentText"><?php echo nl2br(h(substr($article['content'], 200))); ?></div>
+
+      <style>
+          @keyframes wave {
+              0% { height: 4px; }
+              50% { height: 25px; }
+              100% { height: 4px; }
+          }
+          .audio-waves.playing span {
+              animation: wave 1s infinite ease-in-out;
+          }
+          .audio-waves.playing span:nth-child(1) { animation-delay: 0.0s; }
+          .audio-waves.playing span:nth-child(2) { animation-delay: 0.2s; }
+          .audio-waves.playing span:nth-child(3) { animation-delay: 0.4s; }
+          .audio-waves.playing span:nth-child(4) { animation-delay: 0.6s; }
+          .audio-waves.playing span:nth-child(5) { animation-delay: 0.8s; }
+      </style>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnPlay = document.getElementById('btnPlaySpeech');
+            const playIcon = document.getElementById('playIcon');
+            const statusText = document.getElementById('speechStatus');
+            const waves = document.getElementById('audioWaves');
+            
+            // On récupère le texte pur à lire (sans les balises HTML)
+            const articleText = <?php echo json_encode(html_entity_decode(strip_tags($article['title'] . ". " . $article['content']))); ?>;
+            
+            let synth = window.speechSynthesis;
+            let utterance = new SpeechSynthesisUtterance(articleText);
+            utterance.lang = 'fr-FR'; // Voix française
+            utterance.rate = 1.0;     // Vitesse normale
+            utterance.pitch = 1.0;    // Tonalité
+            
+            let isPlaying = false;
+
+            // Charger les voix dispo
+            function loadVoices() {
+                let voices = synth.getVoices();
+                let frVoice = voices.find(v => v.lang.includes('fr') && (v.name.includes('Google') || v.name.includes('Premium') || v.name.includes('Natural')));
+                if(frVoice) utterance.voice = frVoice; // Préférer une voix premium si dispo
+            }
+            
+            if (synth.onvoiceschanged !== undefined) {
+                synth.onvoiceschanged = loadVoices;
+            }
+            loadVoices();
+
+            btnPlay.addEventListener('click', function() {
+                if (synth.paused) {
+                    synth.resume();
+                    setPlayingState();
+                } else if (synth.speaking && isPlaying) {
+                    synth.pause();
+                    setPausedState();
+                } else {
+                    // Démarrer de zéro
+                    synth.cancel(); // Arrêter toute lecture précédente
+                    synth.speak(utterance);
+                    setPlayingState();
+                }
+            });
+
+            utterance.onend = function() {
+                setPausedState();
+                statusText.innerText = 'Lecture terminée.';
+            };
+            
+            utterance.onerror = function(e) {
+                console.error("SpeechSynthesis Error:", e);
+                setPausedState();
+                statusText.innerText = 'Erreur lors de la lecture.';
+            };
+
+            function setPlayingState() {
+                isPlaying = true;
+                playIcon.className = 'fa fa-pause';
+                btnPlay.style.background = '#E76F51';
+                statusText.innerText = 'Lecture en cours...';
+                waves.classList.add('playing');
+            }
+
+            function setPausedState() {
+                isPlaying = false;
+                playIcon.className = 'fa fa-play';
+                btnPlay.style.background = '#2D6A4F';
+                statusText.innerText = 'Lecture en pause.';
+                waves.classList.remove('playing');
+            }
+            
+            // Couper la voix si l'utilisateur quitte la page
+            window.addEventListener('beforeunload', function() {
+                synth.cancel();
+            });
+        });
+      </script>
+
+    <!-- SCRIPTS POUR EXPORT PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+    function generatePDF() {
+        // 1. On récupère les données proprement
+        const title = "<?php echo addslashes(h($article['title'])); ?>";
+        const date = "<?php echo date('d/m/Y', strtotime($article['created_at'])); ?>";
+        const content = document.querySelector('.article-content').innerHTML;
+        const lead = document.querySelector('.article-lead').innerText;
+
+        // 2. On crée un template HTML propre pour le PDF
+        const pdfTemplate = `
+            <div style="padding:40px; font-family:serif;">
+                <h1 style="color:#2D6A4F; border-bottom:2px solid #2D6A4F; padding-bottom:10px; font-size:24pt;">${title}</h1>
+                <p style="color:#888; font-style:italic; margin-bottom:20px;">Publié le ${date}</p>
+                <p style="font-size:14pt; color:#444; font-style:italic; margin-bottom:20px;">${lead}</p>
+                <div style="font-size:12pt; line-height:1.6; text-align:justify;">${content}</div>
+                <div style="margin-top:50px; border-top:1px solid #ccc; padding-top:10px; font-size:10pt; color:#999; text-align:center;">
+                    © SmartFood - Document généré le ${new Date().toLocaleDateString()}
+                </div>
+            </div>
+        `;
+
+        // 3. On génère le PDF à partir de ce template virtuel
+        const opt = {
+            margin:       [10, 10],
+            filename:     'SmartFood_' + title.substring(0, 30) + '.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(pdfTemplate).save();
+    }
+    </script>
+
+      <?php
+        $protocol     = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $articleUrl   = urlencode($protocol . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+        $articleTitle = urlencode($article['title']);
+        $whatsappText = urlencode('Découvrez cet article SmartFood : ' . $article['title'] . ' → ' . urldecode($articleUrl));
+        $twitterUrl   = 'https://twitter.com/intent/tweet?url=' . $articleUrl . '&text=' . $articleTitle . '&via=SmartFood';
+        $facebookUrl  = 'https://www.facebook.com/sharer/sharer.php?u=' . $articleUrl;
+        $whatsappUrl  = 'https://wa.me/?text=' . $whatsappText;
+      ?>
+
+      <style>
+        /* ── Premium Share Section ── */
+        .share-section {
+          margin-top: 32px;
+          padding: 24px 28px;
+          background: linear-gradient(135deg, #f8fffe 0%, #f0f9f5 100%);
+          border-radius: 20px;
+          border: 1px solid rgba(45,106,79,.12);
+          box-shadow: 0 4px 20px rgba(45,106,79,.07);
+        }
+        .share-section-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 18px;
+        }
+        .share-section-header .share-icon-circle {
+          width: 38px; height: 38px;
+          background: linear-gradient(135deg, #2D6A4F, #40916C);
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          color: #fff; font-size: 15px;
+          box-shadow: 0 4px 12px rgba(45,106,79,.35);
+        }
+        .share-section-header span {
+          font-weight: 700; font-size: 1rem; color: #1a3d2b;
+          letter-spacing: .01em;
+        }
+        .share-section-header small {
+          color: #888; font-size: .8rem; margin-left: 4px; font-weight: 400;
+        }
+
+        .share-buttons-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          align-items: center;
+        }
+
+        /* ── Generic Button Base ── */
+        .sp-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 9px 20px;
+          border-radius: 50px;
+          font-size: .875rem;
+          font-weight: 600;
+          border: none;
+          cursor: pointer;
+          text-decoration: none;
+          color: #fff;
+          letter-spacing: .02em;
+          position: relative;
+          overflow: hidden;
+          transition: transform .25s cubic-bezier(.34,1.56,.64,1),
+                      box-shadow .25s ease,
+                      filter .2s ease;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .sp-btn i { font-size: 1rem; flex-shrink: 0; }
+
+        /* Ripple */
+        .sp-btn::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background: rgba(255,255,255,.18);
+          opacity: 0;
+          transition: opacity .2s;
+        }
+        .sp-btn:hover::after { opacity: 1; }
+        .sp-btn:active { transform: scale(.96) !important; }
+
+        /* Hover lift + glow */
+        .sp-btn:hover {
+          transform: translateY(-3px) scale(1.04);
+          filter: brightness(1.08);
+        }
+
+        /* Twitter / X */
+        .sp-btn.tw {
+          background: linear-gradient(135deg, #1a91da, #0d77b5);
+          box-shadow: 0 4px 14px rgba(26,145,218,.35);
+        }
+        .sp-btn.tw:hover { box-shadow: 0 8px 22px rgba(26,145,218,.5); }
+
+        /* Facebook */
+        .sp-btn.fb {
+          background: linear-gradient(135deg, #1877f2, #0d5ecf);
+          box-shadow: 0 4px 14px rgba(24,119,242,.35);
+        }
+        .sp-btn.fb:hover { box-shadow: 0 8px 22px rgba(24,119,242,.5); }
+
+        /* WhatsApp */
+        .sp-btn.wa {
+          background: linear-gradient(135deg, #25D366, #128C7E);
+          box-shadow: 0 4px 14px rgba(37,211,102,.35);
+        }
+        .sp-btn.wa:hover { box-shadow: 0 8px 22px rgba(37,211,102,.5); }
+
+        /* Instagram */
+        .sp-btn.ig {
+          background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+          box-shadow: 0 4px 14px rgba(220,39,67,.35);
+        }
+        .sp-btn.ig:hover { box-shadow: 0 8px 22px rgba(220,39,67,.5); }
+
+        /* Copy Link */
+        .sp-btn.cp {
+          background: linear-gradient(135deg, #52525b, #3f3f46);
+          box-shadow: 0 4px 14px rgba(82,82,91,.3);
+        }
+        .sp-btn.cp:hover { box-shadow: 0 8px 22px rgba(82,82,91,.45); }
+
+        /* PDF — pushed right */
+        .sp-btn.pdf {
+          background: linear-gradient(135deg, #e63946, #c1121f);
+          box-shadow: 0 4px 14px rgba(230,57,70,.35);
+          margin-left: auto;
+        }
+        .sp-btn.pdf:hover { box-shadow: 0 8px 22px rgba(230,57,70,.5); }
+
+        /* Divider */
+        .share-divider {
+          width: 1px; height: 28px;
+          background: rgba(45,106,79,.15);
+          border-radius: 2px;
+          flex-shrink: 0;
+        }
+      </style>
+
+      <div class="share-section">
+        <div class="share-section-header">
+          <div class="share-icon-circle"><i class="fa fa-share-alt"></i></div>
+          <span>Partager cet article <small>— Faites passer le mot !</small></span>
+        </div>
+
+        <div class="share-buttons-row">
+
+          <!-- Twitter / X -->
+          <a href="<?php echo $twitterUrl; ?>" target="_blank" rel="noopener noreferrer"
+             class="sp-btn tw" title="Partager sur Twitter / X">
+            <i class="fa fa-twitter"></i> Twitter
+          </a>
+
+          <!-- Facebook -->
+          <a href="<?php echo $facebookUrl; ?>" target="_blank" rel="noopener noreferrer"
+             class="sp-btn fb" title="Partager sur Facebook">
+            <i class="fa fa-facebook"></i> Facebook
+          </a>
+
+          <!-- WhatsApp -->
+          <a href="<?php echo $whatsappUrl; ?>" target="_blank" rel="noopener noreferrer"
+             class="sp-btn wa" title="Partager sur WhatsApp">
+            <i class="fa fa-whatsapp"></i> WhatsApp
+          </a>
+
+          <!-- Instagram -->
+          <button onclick="shareInstagram()" class="sp-btn ig" title="Partager sur Instagram">
+            <i class="fa fa-instagram"></i> Instagram
+          </button>
+
+          <!-- Divider -->
+          <div class="share-divider"></div>
+
+          <!-- Copy Link -->
+          <button onclick="copyArticleLink()" class="sp-btn cp" id="copyLinkBtn" title="Copier le lien">
+            <i class="fa fa-link" id="copyIcon"></i>
+            <span id="copyLinkText">Copier le lien</span>
+          </button>
+
+          <!-- PDF -->
+          <button onclick="generatePDF()" class="sp-btn pdf" title="Télécharger en PDF">
+            <i class="fa fa-file-pdf-o"></i> PDF
+          </button>
+
+        </div>
+      </div>
+
+      <script>
+      function copyArticleLink() {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+          const btn  = document.getElementById('copyLinkBtn');
+          const text = document.getElementById('copyLinkText');
+          const icon = document.getElementById('copyIcon');
+          text.textContent = 'Copié !';
+          icon.className = 'fa fa-check';
+          btn.style.background = 'linear-gradient(135deg,#16a34a,#15803d)';
+          setTimeout(() => {
+            text.textContent = 'Copier le lien';
+            icon.className = 'fa fa-link';
+            btn.style.background = '';
+          }, 2500);
+        });
+      }
+
+      function shareInstagram() {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+          alert('✅ Lien copié dans le presse-papiers !\n\nOuvrez Instagram, créez une Story ou un Post, puis collez le lien.');
+          window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer');
+        }).catch(() => {
+          window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer');
+        });
+      }
+      </script>
     </article>
 
     <!-- COMMENTAIRES -->
@@ -265,17 +674,32 @@ $icon     = $icons[$article['id'] % count($icons)];
 
   <aside class="sidebar">
 
-    <?php if (!empty($related)): ?>
+    <?php if (!empty($aiRecommendations)): ?>
     <div class="sidebar-card">
-      <div class="sidebar-title">📌 À lire aussi</div>
-      <?php foreach ($related as $rel): ?>
+      <div class="sidebar-title">🔥 Articles recommandés</div>
+      <?php foreach ($aiRecommendations as $rel): ?>
       <?php $relIcon = $icons[$rel['id'] % count($icons)]; ?>
-      <a href="article.php?id=<?php echo $rel['id']; ?>" class="related-card">
-        <div class="related-icon"><?php echo $relIcon; ?></div>
-        <div>
-          <div class="related-title"><?php echo h(mb_substr($rel['title'], 0, 50)); ?>…</div>
-          <div class="related-date"><?php echo date('d/m/Y', strtotime($rel['created_at'])); ?></div>
+      <a href="article.php?id=<?php echo $rel['id']; ?>" class="related-card" style="flex-direction: column; align-items: stretch;" title="Score IA: <?php echo $rel['ai_score']; ?>">
+        <div style="display:flex; gap:12px; width: 100%;">
+          <div class="related-icon"><?php echo $relIcon; ?></div>
+          <div style="width: 100%;">
+            <div class="related-title"><?php echo h(mb_substr($rel['title'], 0, 50)); ?>…</div>
+            <div class="related-date" style="display:flex; justify-content:space-between;">
+              <span><?php echo date('d/m/Y', strtotime($rel['created_at'])); ?></span>
+              <span style="color:var(--orange);font-weight:600;"><i class="fa fa-star"></i> <?php echo number_format($rel['ai_score'], 1); ?></span>
+            </div>
+          </div>
         </div>
+        <?php if (!empty($rel['ai_reasons'])): ?>
+        <div style="margin-top: 10px; font-size: 0.75rem; color: #6c757d; background: #f8f9fa; padding: 8px; border-radius: 6px; border-left: 2px solid var(--orange);">
+          <div style="font-weight:bold; margin-bottom:4px;">💡 Pourquoi cet article ?</div>
+          <ul style="margin:0; padding-left:14px; line-height:1.4;">
+            <?php foreach($rel['ai_reasons'] as $reason): ?>
+              <li><?php echo $reason; ?></li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+        <?php endif; ?>
       </a>
       <?php endforeach; ?>
     </div>
@@ -377,3 +801,4 @@ window.addEventListener('load', function() {
 <script src="js/custom.js"></script>
 </body>
 </html>
+

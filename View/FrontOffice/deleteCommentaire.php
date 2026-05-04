@@ -1,10 +1,10 @@
 <?php
 require_once __DIR__ . '/../../config.php';
-require_once __DIR__ . '/../../Model/Commentaire.php';
+
 require_once __DIR__ . '/../../Controller/CommentaireController.php';
 
-$commentaireModel      = new Commentaire($pdo);
-$commentaireController = new CommentaireController($commentaireModel);
+
+$commentaireController = new CommentaireController($pdo);
 
 if (isset($_GET['id'])) {
     $id = (int) $_GET['id'];
@@ -15,3 +15,4 @@ if (isset($_GET['id'])) {
 // Redirection vers la page de recherche avec message de succès
 header('Location: searchCommentaires.php?success=deleted');
 exit;
+

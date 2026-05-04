@@ -1,4 +1,39 @@
-@import url("https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Open+Sans:wght@400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Open+Sans:wght@400;600;700&family=Outfit:wght@300;400;600;800&display=swap");
+
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --depth-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  --accent-glow: 0 0 20px rgba(255, 190, 51, 0.3);
+  --3d-perspective: 1000px;
+}
+
+/* 3D Floating Animation */
+@keyframes float3d {
+  0% { transform: translateY(0px) rotateX(0deg) rotateY(0deg); }
+  50% { transform: translateY(-15px) rotateX(5deg) rotateY(2deg); }
+  100% { transform: translateY(0px) rotateX(0deg) rotateY(0deg); }
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--depth-shadow);
+  border-radius: 20px;
+}
+
+.tilt-3d {
+  transform-style: preserve-3d;
+  perspective: var(--3d-perspective);
+  transition: transform 0.3s ease;
+}
+
+.tilt-3d:hover {
+  transform: translateZ(20px);
+}
+
 body {
   font-family: "Open Sans", sans-serif;
   color: #0c0c0c;

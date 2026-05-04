@@ -1,11 +1,11 @@
 <?php
 define('BO_ACCESS', true);
 require_once __DIR__ . '/../../../config.php';
-require_once __DIR__ . '/../../../Model/Commentaire.php';
+
 require_once __DIR__ . '/../../../Controller/CommentaireController.php';
 
-$commentaireModel      = new Commentaire($pdo);
-$commentaireController = new CommentaireController($commentaireModel);
+
+$commentaireController = new CommentaireController($pdo);
 
 $query     = trim($_GET['q'] ?? '');
 $sortBy    = $_GET['sort'] ?? 'created_at';
@@ -17,7 +17,16 @@ $pageTitle  = 'Commentaires';
 $activeMenu = 'comment-list';
 
 $success = $_GET['success'] ?? '';
-$messages = ['created' => '✅ Commentaire créé avec succès.', 'updated' => '✅ Commentaire modifié avec succès.', 'deleted' => '✅ Commentaire supprimé avec succès.'];
+
+// Métier Avancé : Traitement de la purge
+if (isset($_GET['action']) && $_GET['action'] === 'purge' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $purgeResult = $commentaireController->purgeRejected();
+    if ($purgeResult['success']) {
+        $success = 'deleted'; // Réutilisation du message de succès
+    }
+}
+
+$messages = ['created' => '✅ Commentaire créé avec succès.', 'updated' => '✅ Commentaire modifié avec succès.', 'deleted' => '✅ Nettoyage terminé : Les commentaires rejetés ont été supprimés.'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
@@ -127,15 +136,23 @@ require_once __DIR__ . '/../includes/header.php';
         <th>Auteur</th>
         <th>Article</th>
         <th>Commentaire</th>
-        <th>Date</th>
+        <th>Sentiment</th>
+        <th>Statut</th>
         <th style="text-align:center;">Action</th>
       </tr>
     </thead>
     <tbody>
       <?php if (empty($comments)): ?>
-        <tr><td colspan="6" style="text-align:center;padding:40px;color:#adb5bd;">Aucun commentaire pour le moment.</td></tr>
+        <tr><td colspan="7" style="text-align:center;padding:40px;color:#adb5bd;">Aucun commentaire pour le moment.</td></tr>
       <?php else: ?>
         <?php foreach ($comments as $c): ?>
+        <?php 
+          $sentiment = $commentaireController->analyzeSentiment($c['content']);
+          $sentColor = $sentiment === 'positive' ? '#28a745' : ($sentiment === 'negative' ? '#dc3545' : '#6c757d');
+          $sentIcon  = $sentiment === 'positive' ? 'smile' : ($sentiment === 'negative' ? 'frown' : 'meh');
+          
+          $statusBadge = $c['status'] === 'approved' ? 'bg-success' : ($c['status'] === 'rejected' ? 'bg-danger' : 'bg-warning');
+        ?>
         <tr>
           <td style="padding:14px 20px;color:#adb5bd;">#<?php echo $c['id']; ?></td>
           <td>
@@ -146,14 +163,24 @@ require_once __DIR__ . '/../includes/header.php';
               <span style="font-weight:600;"><?php echo htmlspecialchars($c['author']); ?></span>
             </div>
           </td>
-          <td style="color:#6c757d;max-width:180px;">
-            <?php echo htmlspecialchars(mb_substr($c['article_title'], 0, 35)); ?>…
+          <td style="color:#6c757d;max-width:150px;">
+            <?php echo htmlspecialchars(mb_substr($c['article_title'] ?? 'Inconnu', 0, 30)); ?>…
           </td>
-          <td style="max-width:260px;color:#495057;">
-            <?php echo htmlspecialchars(mb_substr($c['content'], 0, 70)); ?>…
+          <td style="max-width:200px;color:#495057;">
+            <?php echo htmlspecialchars(mb_substr($c['content'], 0, 60)); ?>…
+            <div class="small text-muted"><?php echo date('d/m/Y H:i', strtotime($c['created_at'])); ?></div>
           </td>
-          <td style="color:#adb5bd;white-space:nowrap;"><?php echo date('d/m/Y H:i', strtotime($c['created_at'])); ?></td>
-          <td style="text-align:center;">
+          <td>
+            <span style="color:<?php echo $sentColor; ?>;font-weight:600;font-size:.75rem;">
+              <i class="fas fa-<?php echo $sentIcon; ?>"></i> <?php echo ucfirst($sentiment); ?>
+            </span>
+          </td>
+          <td>
+            <span class="badge <?php echo $statusBadge; ?>" style="font-size:.7rem;">
+              <?php echo strtoupper($c['status']); ?>
+            </span>
+          </td>
+          <td style="text-align:center;white-space:nowrap;">
             <a href="update.php?id=<?php echo $c['id']; ?>"
                class="btn btn-sm btn-warning" style="border-radius:6px;margin-right:4px;" title="Modifier">
               <i class="fas fa-pencil-alt"></i>
@@ -172,3 +199,4 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
+

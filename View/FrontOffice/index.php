@@ -1,11 +1,9 @@
 <?php
 require_once __DIR__ . '/../../config.php';
-require_once __DIR__ . '/../../Model/Article.php';
 require_once __DIR__ . '/../../Controller/ArticleController.php';
 
-$articleModel      = new Article($pdo);
-$articleController = new ArticleController($articleModel);
-$articles          = $articleController->getAll();
+$articleController = new ArticleController($pdo);
+$articles          = $articleController->getAll(true);
 $blogImages        = ['blog_1.png', 'blog_2.png', 'blog_3.png', 'blog_4.png'];
 ?>
 <!DOCTYPE html>
@@ -22,8 +20,38 @@ $blogImages        = ['blog_1.png', 'blog_2.png', 'blog_3.png', 'blog_4.png'];
   <link rel="stylesheet" href="css/font-awesome.min.css"/>
   <link rel="stylesheet" href="css/style.css"/>
   <link rel="stylesheet" href="css/responsive.css"/>
+  
+  <!-- 3D Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
 
   <style>
+    /* ── 3D Background Blobs ── */
+    .blob-c {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: -1;
+      overflow: hidden;
+      background: #0c0c0c;
+    }
+    .blob {
+      position: absolute;
+      width: 500px; height: 500px;
+      background: linear-gradient(135deg, #ffbe33 0%, #e69c00 100%);
+      filter: blur(80px);
+      border-radius: 50%;
+      opacity: 0.15;
+      animation: float3d 20s infinite alternate;
+    }
+    .blob-1 { top: -100px; right: -100px; background: #ffbe33; }
+    .blob-2 { bottom: -150px; left: -100px; background: #2D6A4F; animation-delay: -5s; }
+
+    @keyframes float3d {
+      0% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(-50px, 50px) scale(1.1); }
+      66% { transform: translate(50px, -30px) scale(0.9); }
+      100% { transform: translate(0, 0) scale(1); }
+    }
+
     /* ── Overrides SmartFood branding on Feane base ── */
     :root {
       --feane-yellow: #ffbe33;
@@ -52,6 +80,15 @@ $blogImages        = ['blog_1.png', 'blog_2.png', 'blog_3.png', 'blog_4.png'];
       color: #fff !important;
     }
 
+    /* Hero Background Overlay (to hide the burger) */
+    .hero_area .bg-box {
+      background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8));
+    }
+    .hero_area .bg-box img {
+      opacity: 0.3; /* Make the burger very subtle or almost invisible */
+      filter: blur(5px);
+    }
+
     /* Alert success */
     .alert-success-sf {
       background: #d4edda;
@@ -71,6 +108,12 @@ $blogImages        = ['blog_1.png', 'blog_2.png', 'blog_3.png', 'blog_4.png'];
   </style>
 </head>
 <body>
+
+<!-- Background Blobs -->
+<div class="blob-c">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+</div>
 
 <!-- ══════════════════════════════════════════════════
      HERO AREA  (dark background + hero-bg.jpg)
@@ -153,8 +196,8 @@ $blogImages        = ['blog_1.png', 'blog_2.png', 'blog_3.png', 'blog_4.png'];
         <div class="carousel-item active">
           <div class="container">
             <div class="row">
-              <div class="col-md-6">
-                <div class="detail-box">
+              <div class="col-md-10 mx-auto">
+                <div class="detail-box" style="text-align: center;">
                   <h1>
                     Articles Nutrition<br/>
                     &amp; Bien-être
@@ -169,11 +212,6 @@ $blogImages        = ['blog_1.png', 'blog_2.png', 'blog_3.png', 'blog_4.png'];
                   </div>
                 </div>
               </div>
-              <div class="col-md-6">
-                <div class="img-box">
-                  <img src="images/blog_1.png" alt="Nutrition Blog"/>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -183,8 +221,8 @@ $blogImages        = ['blog_1.png', 'blog_2.png', 'blog_3.png', 'blog_4.png'];
         <div class="carousel-item">
           <div class="container">
             <div class="row">
-              <div class="col-md-6">
-                <div class="detail-box">
+              <div class="col-md-10 mx-auto">
+                <div class="detail-box" style="text-align: center;">
                   <h5 style="color:var(--feane-yellow);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;font-family:'Open Sans',sans-serif;">
                     Article à la une
                   </h5>
@@ -201,11 +239,6 @@ $blogImages        = ['blog_1.png', 'blog_2.png', 'blog_3.png', 'blog_4.png'];
                   </div>
                 </div>
               </div>
-              <div class="col-md-6">
-                <div class="img-box">
-                  <img src="images/blog_2.png" alt="Article à la une"/>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -216,8 +249,8 @@ $blogImages        = ['blog_1.png', 'blog_2.png', 'blog_3.png', 'blog_4.png'];
         <div class="carousel-item">
           <div class="container">
             <div class="row">
-              <div class="col-md-6">
-                <div class="detail-box">
+              <div class="col-md-9 mx-auto">
+                <div class="detail-box" style="text-align: center;">
                   <h5 style="color:var(--feane-yellow);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;font-family:'Open Sans',sans-serif;">
                     Dernière Publication
                   </h5>
@@ -232,11 +265,6 @@ $blogImages        = ['blog_1.png', 'blog_2.png', 'blog_3.png', 'blog_4.png'];
                       Lire l'article &rarr;
                     </a>
                   </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="img-box">
-                  <img src="images/blog_3.png" alt="Article récent"/>
                 </div>
               </div>
             </div>
@@ -288,12 +316,6 @@ $blogImages        = ['blog_1.png', 'blog_2.png', 'blog_3.png', 'blog_4.png'];
       <?php endif; ?>
     <?php endif; ?>
 
-    <ul class="filters_menu">
-      <li class="active" data-filter="*">Tous</li>
-      <li data-filter=".recette">Recettes</li>
-      <li data-filter=".conseil">Conseils</li>
-      <li data-filter=".nutrition">Nutrition</li>
-    </ul>
 
     <div class="filters-content">
       <div class="row grid">
@@ -311,10 +333,21 @@ $blogImages        = ['blog_1.png', 'blog_2.png', 'blog_3.png', 'blog_4.png'];
                      style="object-fit: cover; width: 100%; height: 100%;">
               </div>
               <div class="detail-box">
+                <div class="d-flex justify-content-between mb-2">
+                  <?php 
+                    $readTime = $articleController->calculateReadTime($art['content']); 
+                    $trendingIds = array_column($articleController->getTrendingArticles(3), 'id');
+                    $isTrending = in_array($art['id'], $trendingIds);
+                  ?>
+                  <small class="text-muted"><i class="fa fa-clock-o"></i> <?php echo $readTime; ?> min</small>
+                  <?php if ($isTrending): ?>
+                    <span class="badge bg-warning text-dark"><i class="fa fa-fire"></i> En vogue</span>
+                  <?php endif; ?>
+                </div>
                 <h5><?php echo htmlspecialchars($art['title']); ?></h5>
-                <p><?php echo htmlspecialchars(mb_substr($art['content'], 0, 80)); ?>…</p>
+                <p><?php echo htmlspecialchars(mb_substr(strip_tags($art['content']), 0, 80)); ?>…</p>
                 <div class="options">
-                  <h6>Posté le <?php echo date('d/m/y', strtotime($art['created_at'])); ?></h6>
+                  <h6 style="font-size:.75rem;">Posté le <?php echo date('d/m/y', strtotime($art['created_at'])); ?></h6>
                   <a href="article.php?id=<?php echo $art['id']; ?>">
                     <i class="fa fa-eye" aria-hidden="true"></i>
                   </a>
@@ -506,5 +539,17 @@ $blogImages        = ['blog_1.png', 'blog_2.png', 'blog_3.png', 'blog_4.png'];
 <script src="js/bootstrap.js"></script>
 <script src="js/custom.js"></script>
 
+<!-- Initialize 3D Animation (Vanilla Tilt) -->
+<script>
+  VanillaTilt.init(document.querySelectorAll(".box"), {
+    max: 15,
+    speed: 400,
+    glare: true,
+    "max-glare": 0.2,
+    scale: 1.05
+  });
+</script>
+
 </body>
 </html>
+

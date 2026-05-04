@@ -1,10 +1,10 @@
 <?php
 require_once __DIR__ . '/../../config.php';
-require_once __DIR__ . '/../../Model/Article.php';
+
 require_once __DIR__ . '/../../Controller/ArticleController.php';
 
-$articleModel      = new Article($pdo);
-$articleController = new ArticleController($articleModel);
+
+$articleController = new ArticleController($pdo);
 
 $id = $_GET['id'] ?? null;
 if (!$id || !isValidId($id)) {
@@ -124,3 +124,4 @@ document.getElementById('content').addEventListener('input', function() { if (th
 
 </body>
 </html>
+

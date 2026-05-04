@@ -4,15 +4,15 @@
  * Jointure INNER JOIN entre `commentaires` et `articles`
  */
 require_once __DIR__ . '/../../config.php';
-require_once __DIR__ . '/../../Model/Article.php';
-require_once __DIR__ . '/../../Model/Commentaire.php';
+
+
 require_once __DIR__ . '/../../Controller/ArticleController.php';
 require_once __DIR__ . '/../../Controller/CommentaireController.php';
 
-$articleModel          = new Article($pdo);
-$commentaireModel      = new Commentaire($pdo);
-$articleController     = new ArticleController($articleModel);
-$commentaireController = new CommentaireController($commentaireModel);
+
+
+$articleController     = new ArticleController($pdo);
+$commentaireController = new CommentaireController($pdo);
 
 // Récupérer tous les articles pour le menu déroulant
 $articles = $articleController->getAll();
@@ -204,7 +204,6 @@ $icons = ['🥦','🍎','🥑','🫐','🌿','🍋','🥕','🫚'];
 
 <div class="page-hero">
   <h1>💬 Recherche de commentaires par article</h1>
-  <p>Jointure SQL entre les tables <strong>commentaires</strong> et <strong>articles</strong></p>
 </div>
 
 <div class="page-layout">
@@ -283,10 +282,10 @@ $icons = ['🥦','🍎','🥑','🫐','🌿','🍋','🥕','🫚'];
           
           <!-- Actions CRUD FrontOffice -->
           <div style="margin-top:12px;display:flex;gap:8px;">
-            <a href="updateCommentaire.php?id=<?php echo $row['id']; ?>" style="font-size:.8rem;color:#E76F51;text-decoration:none;font-weight:600;background:#fff3e0;padding:4px 12px;border-radius:50px;">
+            <a href="updateCommentaire.php?id=<?php echo $row['commentaire_id']; ?>" style="font-size:.8rem;color:#E76F51;text-decoration:none;font-weight:600;background:#fff3e0;padding:4px 12px;border-radius:50px;">
               <i class="fa fa-pencil"></i> Modifier
             </a>
-            <a href="deleteCommentaire.php?id=<?php echo $row['id']; ?>" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ?');" style="font-size:.8rem;color:#dc3545;text-decoration:none;font-weight:600;background:#fde2e2;padding:4px 12px;border-radius:50px;">
+            <a href="deleteCommentaire.php?id=<?php echo $row['commentaire_id']; ?>" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ?');" style="font-size:.8rem;color:#dc3545;text-decoration:none;font-weight:600;background:#fde2e2;padding:4px 12px;border-radius:50px;">
               <i class="fa fa-trash"></i> Supprimer
             </a>
           </div>
@@ -330,3 +329,4 @@ $icons = ['🥦','🍎','🥑','🫐','🌿','🍋','🥕','🫚'];
 <script src="js/custom.js"></script>
 </body>
 </html>
+

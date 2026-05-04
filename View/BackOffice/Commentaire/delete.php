@@ -1,11 +1,11 @@
 <?php
 define('BO_ACCESS', true);
 require_once __DIR__ . '/../../../config.php';
-require_once __DIR__ . '/../../../Model/Commentaire.php';
+
 require_once __DIR__ . '/../../../Controller/CommentaireController.php';
 
-$commentaireModel      = new Commentaire($pdo);
-$commentaireController = new CommentaireController($commentaireModel);
+
+$commentaireController = new CommentaireController($pdo);
 
 if (!isset($_GET['id']) || !isValidId($_GET['id'])) {
     header('Location: list.php'); exit;
@@ -14,3 +14,4 @@ if (!isset($_GET['id']) || !isValidId($_GET['id'])) {
 $commentaireController->delete((int)$_GET['id']);
 header('Location: list.php?success=deleted');
 exit;
+

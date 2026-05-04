@@ -1,11 +1,11 @@
 <?php
 define('BO_ACCESS', true);
 require_once __DIR__ . '/../../../config.php';
-require_once __DIR__ . '/../../../Model/Article.php';
+
 require_once __DIR__ . '/../../../Controller/ArticleController.php';
 
-$articleModel      = new Article($pdo);
-$articleController = new ArticleController($articleModel);
+
+$articleController = new ArticleController($pdo);
 $query     = trim($_GET['q'] ?? '');
 $sortBy    = $_GET['sort'] ?? 'created_at';
 $sortOrder = $_GET['order'] ?? 'DESC';
@@ -29,16 +29,16 @@ require_once __DIR__ . '/../includes/header.php';
   <div>
     <!-- Icônes Métiers : Séparées -->
     <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#searchPanel" title="Rechercher" style="border-radius:50px;margin-right:5px;padding:8px 16px;">
-      <i class="fas fa-search"></i>
+      <i class="fa fa-search"></i>
     </button>
     <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#sortPanel" title="Trier" style="border-radius:50px;margin-right:5px;padding:8px 16px;">
-      <i class="fas fa-sort-amount-down"></i>
+      <i class="fa fa-sort-amount-down"></i>
     </button>
     <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#statsPanel" title="Statistiques" style="border-radius:50px;margin-right:10px;padding:8px 16px;">
-      <i class="fas fa-chart-bar"></i>
+      <i class="fa fa-chart-bar"></i>
     </button>
     <a href="add.php" class="btn btn-success btn-sm" style="border-radius:50px;padding:8px 20px;">
-      <i class="fas fa-plus"></i> Nouvel article
+      <i class="fa fa-plus"></i> Nouvel article
     </a>
   </div>
 </div>
@@ -50,71 +50,76 @@ require_once __DIR__ . '/../includes/header.php';
   </div>
 <?php endif; ?>
 
-<!-- ── MÉTIER : RECHERCHE SEULE ── -->
-<div class="collapse mb-3 <?php echo ($query !== '') ? 'show' : ''; ?>" id="searchPanel">
-  <form method="GET" action="list.php" style="background:white;padding:15px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06); border-left: 4px solid #0d6efd;">
-    <div class="row align-items-end">
-      <div class="col-md-10">
-        <label class="form-label fw-semibold small">Recherche (Titre ou Contenu)</label>
-        <div class="input-group">
-          <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
-          <input type="text" name="q" class="form-control border-start-0" placeholder="Mot-clé..." value="<?php echo htmlspecialchars($query); ?>">
-          <input type="hidden" name="sort" value="<?php echo htmlspecialchars($sortBy); ?>">
-          <input type="hidden" name="order" value="<?php echo htmlspecialchars($sortOrder); ?>">
+<!-- ── MÉTIER : PANNEAUX DE GESTION (Mutuellement exclusifs) ── -->
+<div id="managementPanels">
+
+  <!-- RECHERCHE -->
+  <div class="collapse mb-3 <?php echo ($query !== '') ? 'show' : ''; ?>" id="searchPanel" data-bs-parent="#managementPanels">
+    <form method="GET" action="list.php" style="background:white;padding:15px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06); border-left: 4px solid #0d6efd;">
+      <div class="row align-items-end">
+        <div class="col-md-10">
+          <label class="form-label fw-semibold small">Recherche (Titre ou Contenu)</label>
+          <div class="input-group">
+            <button type="submit" class="input-group-text bg-light border-end-0" style="cursor:pointer;border:1.5px solid #e9ecef;"><i class="fa fa-search text-muted"></i></button>
+            <input type="text" name="q" class="form-control border-start-0" placeholder="Mot-clé..." value="<?php echo htmlspecialchars($query); ?>">
+            <input type="hidden" name="sort" value="<?php echo htmlspecialchars($sortBy); ?>">
+            <input type="hidden" name="order" value="<?php echo htmlspecialchars($sortOrder); ?>">
+          </div>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100 fw-bold">Chercher</button>
         </div>
       </div>
-      <div class="col-md-2">
-        <button type="submit" class="btn btn-primary w-100 fw-bold">Chercher</button>
-      </div>
-    </div>
-  </form>
-</div>
+    </form>
+  </div>
 
-<!-- ── MÉTIER : TRI SEUL ── -->
-<div class="collapse mb-3 <?php echo (isset($_GET['sort'])) ? 'show' : ''; ?>" id="sortPanel">
-  <form method="GET" action="list.php" style="background:white;padding:15px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06); border-left: 4px solid #6c757d;">
-    <div class="row align-items-end">
-      <input type="hidden" name="q" value="<?php echo htmlspecialchars($query); ?>">
-      <div class="col-md-5">
-        <label class="form-label fw-semibold small">Trier par</label>
-        <select name="sort" class="form-select bg-light">
-          <option value="created_at" <?php echo $sortBy === 'created_at' ? 'selected' : ''; ?>>Date</option>
-          <option value="title" <?php echo $sortBy === 'title' ? 'selected' : ''; ?>>Titre</option>
-        </select>
-      </div>
-      <div class="col-md-5">
-        <label class="form-label fw-semibold small">Ordre</label>
-        <select name="order" class="form-select bg-light">
-          <option value="DESC" <?php echo $sortOrder === 'DESC' ? 'selected' : ''; ?>>Décroissant</option>
-          <option value="ASC" <?php echo $sortOrder === 'ASC' ? 'selected' : ''; ?>>Croissant</option>
-        </select>
-      </div>
-      <div class="col-md-2">
-        <button type="submit" class="btn btn-secondary w-100 fw-bold">Trier</button>
-      </div>
-    </div>
-  </form>
-</div>
-
-<!-- ── MÉTIER : STATISTIQUES ── -->
-<div class="collapse mb-3" id="statsPanel">
-  <div style="background:white;padding:20px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06); border-left: 4px solid #0dcaf0;">
-    <h6 class="fw-bold mb-3"><i class="fas fa-chart-line text-info"></i> Top 3 des articles les plus commentés</h6>
-    <div class="row">
-      <?php 
-      $topArticles = $articleController->getTopCommented(3);
-      foreach($topArticles as $ta): 
-      ?>
-      <div class="col-md-4">
-        <div class="p-2 border rounded bg-light mb-2">
-          <div class="small text-muted text-truncate"><?php echo htmlspecialchars($ta['title']); ?></div>
-          <div class="fw-bold text-info"><?php echo $ta['comment_count']; ?> commentaires</div>
+  <!-- TRI -->
+  <div class="collapse mb-3 <?php echo (isset($_GET['sort']) && $query === '') ? 'show' : ''; ?>" id="sortPanel" data-bs-parent="#managementPanels">
+    <form method="GET" action="list.php" style="background:white;padding:15px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06); border-left: 4px solid #6c757d;">
+      <div class="row align-items-end">
+        <input type="hidden" name="q" value="<?php echo htmlspecialchars($query); ?>">
+        <div class="col-md-5">
+          <label class="form-label fw-semibold small">Trier par</label>
+          <select name="sort" class="form-select bg-light">
+            <option value="created_at" <?php echo $sortBy === 'created_at' ? 'selected' : ''; ?>>Date</option>
+            <option value="title" <?php echo $sortBy === 'title' ? 'selected' : ''; ?>>Titre</option>
+          </select>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label fw-semibold small">Ordre</label>
+          <select name="order" class="form-select bg-light">
+            <option value="DESC" <?php echo $sortOrder === 'DESC' ? 'selected' : ''; ?>>Décroissant</option>
+            <option value="ASC" <?php echo $sortOrder === 'ASC' ? 'selected' : ''; ?>>Croissant</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-secondary w-100 fw-bold">Trier</button>
         </div>
       </div>
-      <?php endforeach; ?>
+    </form>
+  </div>
+
+  <!-- STATISTIQUES -->
+  <div class="collapse mb-3" id="statsPanel" data-bs-parent="#managementPanels">
+    <div style="background:white;padding:20px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06); border-left: 4px solid #0dcaf0;">
+      <h6 class="fw-bold mb-3"><i class="fa fa-chart-line text-info"></i> Top 3 des articles les plus commentés</h6>
+      <div class="row">
+        <?php 
+        $topArticles = $articleController->getTopCommented(3);
+        foreach($topArticles as $ta): 
+        ?>
+        <div class="col-md-4">
+          <div class="p-2 border rounded bg-light mb-2">
+            <div class="small text-muted text-truncate"><?php echo htmlspecialchars($ta['title']); ?></div>
+            <div class="fw-bold text-info"><?php echo $ta['comment_count']; ?> commentaires</div>
+          </div>
+        </div>
+        <?php endforeach; ?>
+      </div>
     </div>
   </div>
-</div>
+
+</div><!-- /#managementPanels -->
 
 <div style="background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);overflow:hidden;">
   <div style="padding:16px 20px;border-bottom:1px solid #e9ecef;display:flex;align-items:center;justify-content:space-between;">
@@ -165,3 +170,4 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
+

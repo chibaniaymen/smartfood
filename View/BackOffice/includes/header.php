@@ -128,6 +128,20 @@ $backPath   = str_repeat('../', $relDepth);  // chemin vers BackOffice/
               <i class="fas fa-external-link-alt"></i><p>Voir le site</p>
             </a>
           </li>
+          <li class="nav-section">
+            <span class="sidebar-mini-icon"><i class="fa fa-ellipsis-h"></i></span>
+            <h4 class="text-section">Outils</h4>
+          </li>
+          <li class="nav-item <?php echo $activeMenu === 'export' ? 'active' : ''; ?>">
+            <a href="<?php echo $backPath; ?>Jointure/export_data.php">
+              <i class="fas fa-file-export"></i><p>Exportation</p>
+            </a>
+          </li>
+          <li class="nav-item <?php echo $activeMenu === 'stats' ? 'active' : ''; ?>">
+            <a href="<?php echo $backPath; ?>stats.php">
+              <i class="fas fa-chart-line"></i><p>Statistiques</p>
+            </a>
+          </li>
 
         </ul>
       </div>
@@ -165,34 +179,97 @@ $backPath   = str_repeat('../', $relDepth);  // chemin vers BackOffice/
           <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
 
             <li class="nav-item topbar-icon dropdown hidden-caret">
+              <?php
+              // Fetch detailed dynamic notifications (Last 24 hours)
+              // 1. All new comments from the last 24 hours
+              $stmtComments = $pdo->query("
+                  SELECT c.id, c.author, c.created_at, c.status, a.title as article_title 
+                  FROM commentaires c 
+                  JOIN articles a ON c.article_id = a.id 
+                  WHERE c.created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+                  ORDER BY c.created_at DESC LIMIT 5
+              ");
+              $recentComments = $stmtComments->fetchAll(PDO::FETCH_ASSOC);
+              
+              // 2. Draft articles (newly proposed) from the last 24 hours
+              $stmtArticles = $pdo->query("
+                  SELECT id, title, created_at 
+                  FROM articles 
+                  WHERE status = 'draft' AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+                  ORDER BY created_at DESC LIMIT 3
+              ");
+              $recentArticles = $stmtArticles->fetchAll(PDO::FETCH_ASSOC);
+
+              // Get total counts for the badge (Last 24 hours)
+              $newCommentsCount = $pdo->query("SELECT COUNT(*) FROM commentaires WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)")->fetchColumn() ?: 0;
+              $newArticlesCount = $pdo->query("SELECT COUNT(*) FROM articles WHERE status = 'draft' AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)")->fetchColumn() ?: 0;
+              $totalNotifs = $newCommentsCount + $newArticlesCount;
+              ?>
               <a class="nav-link dropdown-toggle" href="#" id="notifDropdown" role="button"
                  data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fa fa-bell"></i>
-                <span class="notification">2</span>
+                <?php if($totalNotifs > 0): ?>
+                  <span class="notification" style="background: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; position: absolute; top: 10px; right: 5px;"><?php echo $totalNotifs; ?></span>
+                <?php endif; ?>
               </a>
-              <ul class="dropdown-menu notif-box animated fadeIn" aria-labelledby="notifDropdown">
-                <li><div class="dropdown-title">2 nouvelles notifications</div></li>
+              <ul class="dropdown-menu notif-box animated fadeIn" aria-labelledby="notifDropdown" style="width: 350px;">
+                <li>
+                  <div class="dropdown-title">
+                    <?php echo $totalNotifs > 0 ? $totalNotifs . ' nouvelle(s) notification(s) (24h)' : 'Aucune notification récente'; ?>
+                  </div>
+                </li>
                 <li>
                   <div class="notif-scroll scrollbar-outer">
                     <div class="notif-center">
-                      <a href="<?php echo $backPath; ?>Commentaire/list.php">
-                        <div class="notif-icon notif-success"><i class="fa fa-comment"></i></div>
+                      
+                      <!-- Individual Comments Notifications -->
+                      <?php foreach($recentComments as $comment): ?>
+                      <?php 
+                        // Style differently if the comment is pending (requires attention)
+                        $isPending = ($comment['status'] === 'pending');
+                        $bgColor = $isPending ? 'rgba(239, 68, 68, 0.05)' : 'rgba(45, 106, 79, 0.05)';
+                        $borderColor = $isPending ? '#ef4444' : '#2D6A4F';
+                        $iconBg = $isPending ? '#ef4444' : '#2D6A4F';
+                        $iconClass = $isPending ? 'fa-exclamation-circle' : 'fa-comment';
+                      ?>
+                      <a href="<?php echo $backPath; ?>Commentaire/list.php" style="background: <?php echo $bgColor; ?>; border-left: 4px solid <?php echo $borderColor; ?>; margin-bottom: 5px;">
+                        <div class="notif-icon" style="background: <?php echo $iconBg; ?>; color: white;"><i class="fa <?php echo $iconClass; ?>"></i></div>
                         <div class="notif-content">
-                          <span class="block">Nouveau commentaire reçu</span>
-                          <span class="time">Blog SmartFood</span>
+                          <span class="block">
+                            <strong><?php echo htmlspecialchars($comment['author']); ?></strong> a commenté
+                            <?php if($isPending): ?> <span style="color: #ef4444; font-size: 0.7rem; font-weight: bold;">(À modérer)</span> <?php endif; ?>
+                          </span>
+                          <span class="time">Sur "<?php echo htmlspecialchars(mb_substr($comment['article_title'], 0, 25)) . '...'; ?>"</span>
+                          <span class="time" style="font-size: 0.7rem; color: #9ca3af;"><?php echo date('d/m H:i', strtotime($comment['created_at'])); ?></span>
                         </div>
                       </a>
-                      <a href="<?php echo $backPath; ?>Article/add.php">
-                        <div class="notif-icon notif-primary"><i class="fa fa-newspaper"></i></div>
+                      <?php endforeach; ?>
+                      
+                      <!-- Individual Articles Notifications -->
+                      <?php foreach($recentArticles as $article): ?>
+                      <a href="<?php echo $backPath; ?>Article/list.php" style="background: rgba(245, 158, 11, 0.05); border-left: 4px solid #f59e0b; margin-bottom: 5px;">
+                        <div class="notif-icon notif-warning" style="background: #f59e0b;"><i class="fa fa-newspaper"></i></div>
                         <div class="notif-content">
-                          <span class="block">Publier un nouvel article</span>
-                          <span class="time">Action rapide</span>
+                          <span class="block">
+                            Nouvel article proposé
+                          </span>
+                          <span class="time">"<?php echo htmlspecialchars(mb_substr($article['title'], 0, 25)) . '...'; ?>"</span>
+                          <span class="time" style="font-size: 0.7rem; color: #9ca3af;"><?php echo date('d/m H:i', strtotime($article['created_at'])); ?></span>
                         </div>
                       </a>
+                      <?php endforeach; ?>
+
+                      <?php if($totalNotifs === 0): ?>
+                      <div style="padding:20px; text-align:center; color:#6b7280; font-size:0.9rem;">
+                         <i class="fas fa-check-circle" style="font-size: 2rem; color: #d1fae5; margin-bottom: 10px;"></i><br>
+                         Vous êtes à jour !
+                      </div>
+                      <?php endif; ?>
+                      
                     </div>
                   </div>
                 </li>
-                <li><a class="see-all" href="<?php echo $backPath; ?>Commentaire/list.php">Tous les commentaires <i class="fa fa-angle-right"></i></a></li>
+                <li><a class="see-all" href="<?php echo $backPath; ?>Commentaire/list.php">Gérer les commentaires <i class="fa fa-angle-right"></i></a></li>
               </ul>
             </li>
 
@@ -237,3 +314,4 @@ $backPath   = str_repeat('../', $relDepth);  // chemin vers BackOffice/
 
     <div class="container">
       <div class="page-inner">
+

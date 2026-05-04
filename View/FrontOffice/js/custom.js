@@ -7,22 +7,6 @@ getYear();
 
 $(document).ready(function () {
 
-    // ── Filtres articles (sans Isotope) ──
-    $('.filters_menu li').on('click', function () {
-        $('.filters_menu li').removeClass('active');
-        $(this).addClass('active');
-
-        var filter = $(this).attr('data-filter');
-
-        if (filter === '*') {
-            $('.grid .all').show(300);
-        } else {
-            // masquer tout, puis afficher les items correspondants
-            $('.grid .all').hide(200);
-            $('.grid ' + filter).show(300);
-        }
-    });
-
     // ── Carousel Bootstrap auto-start ──
     $('#customCarousel1').carousel({
         interval: 4000,
