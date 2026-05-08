@@ -7,7 +7,7 @@
  */
 
 // Configuration PDO
-$dsn = 'mysql:host=127.0.0.1;dbname=feane_blog;charset=utf8mb4';
+$dsn = 'mysql:host=127.0.0.1;dbname=feane_events;charset=utf8mb4';
 $dbUser = 'root';
 $dbPassword = '';
 
