@@ -1,0 +1,20 @@
+<?php
+require_once __DIR__ . '/../../config.php';
+
+require_once __DIR__ . '/../../controller/ArticleController.php';
+
+
+$articleController = new ArticleController($pdo);
+
+$id = $_GET['id'] ?? null;
+if ($id && isValidId($id)) {
+    $result = $articleController->delete((int)$id);
+    if ($result['success']) {
+        header('Location: index.php?success=article_deleted');
+        exit;
+    }
+}
+
+header('Location: index.php');
+exit;
+
