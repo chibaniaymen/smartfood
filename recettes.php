@@ -123,7 +123,7 @@ $recettes = $rc->listRecettes();
                       Découvrez nos délicieuses recettes.
                     </p>
                     <div class="btn-box">
-                      <a href="#recettes-list" class="btn1">
+                      <a href="#recettes-list" class="btn1" id="hero-action-btn">
                         Voir recettes
                       </a>
                     </div>
@@ -144,7 +144,10 @@ $recettes = $rc->listRecettes();
         <h2>Recettes</h2>
       </div>
 
-      <div class="table-responsive">
+      <!-- container that will receive the ingredient table when requested -->
+      <div id="ingredient-container" style="display:none; margin-top:18px;"></div>
+
+      <div id="recettes-table-wrapper" class="table-responsive">
         <table class="table table-striped table-bordered">
           <thead>
             <tr>
@@ -190,7 +193,10 @@ $recettes = $rc->listRecettes();
                   <td><?php echo htmlspecialchars($difficulte); ?></td>
                   <td><?php if (!empty($imgUrl)): ?><img src="<?php echo htmlspecialchars($imgUrl); ?>" alt="" style="max-width:120px; max-height:80px;" /><?php else: ?>&nbsp;<?php endif; ?></td>
                   <td>
-                    <a class="btn" href="recette+ingredient/View/FrontOffice/ingredient/index.php?recette_id=<?php echo urlencode($id); ?>" style="background:#06b6d4;padding:8px 10px;border-radius:8px;color:white;text-decoration:none">Voir ingrédients</a>
+                    <a class="btn btn-voir-ingredients" href="recette+ingredient/View/FrontOffice/ingredient/index.php?recette_id=<?php echo urlencode($id); ?>"
+                       data-recipe-name="<?php echo htmlspecialchars($nom); ?>"
+                       data-recipe-id="<?php echo htmlspecialchars($id); ?>"
+                       style="background:#06b6d4;padding:8px 10px;border-radius:8px;color:white;text-decoration:none">Voir ingrédients</a>
                   </td>
                 </tr>
               <?php endforeach; ?>
@@ -210,6 +216,108 @@ $recettes = $rc->listRecettes();
   <script src="view/FrontOffice/js/bootstrap.js"></script>
   <!-- custom js -->
   <script src="view/FrontOffice/js/custom.js"></script>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    function showIngredientHero(recipeName, href) {
+      var detailBox = document.querySelector('.hero_area .detail-box');
+      if (!detailBox) return;
+      var h1 = detailBox.querySelector('h1');
+      var p = detailBox.querySelector('p');
+      var btn = document.getElementById('hero-action-btn') || detailBox.querySelector('.btn-box a.btn1');
+      if (h1) h1.textContent = 'Ingrédients';
+      if (p) { p.textContent = ''; p.style.display = 'none'; }
+      if (btn) {
+        btn.textContent = 'Voir ingrédients';
+        btn.classList.add('btn1');
+        // keep the hero button visible and make it scroll to the ingredient container
+        btn.setAttribute('href', '#ingredient-container');
+        btn.style.display = '';
+        // replace click handler so it always smooth-scrolls to the ingredient area
+        btn.onclick = function(e) {
+          e.preventDefault();
+          var target = document.getElementById('ingredient-container') || document.getElementById('recettes-list');
+          if (target) target.scrollIntoView({behavior:'smooth', block:'start'});
+          // ensure ingredients are loaded if they are not yet
+          var container = document.getElementById('ingredient-container');
+          if (container && (!container.innerHTML || container.innerHTML.trim() === '')) {
+            if (href) loadIngredientTable(href);
+          }
+        };
+      }
+
+      // update the section heading (use same template as Recettes section)
+      try {
+        var sectionHeading = document.querySelector('#recettes-list h2');
+        if (sectionHeading) {
+          sectionHeading.textContent = recipeName ? 'Ingrédients' : 'Ingrédients';
+        }
+      } catch (e) { /* ignore */ }
+      // set hash and scroll to the recettes list anchor
+      try { location.hash = '#recettes-list'; } catch(e) {}
+      var anchor = document.getElementById('recettes-list');
+      if (anchor) anchor.scrollIntoView({behavior:'smooth', block:'start'});
+
+      // load ingredients table into page
+      if (href) loadIngredientTable(href);
+    }
+
+    function loadIngredientTable(href) {
+      var container = document.getElementById('ingredient-container');
+      var recipesWrapper = document.getElementById('recettes-table-wrapper');
+      if (!container) return;
+      // show loading indicator
+      container.innerHTML = '<div style="padding:16px;background:#fff;border-radius:8px;box-shadow:0 1px 6px rgba(0,0,0,.06)">Chargement des ingrédients…</div>';
+      container.style.display = 'block';
+      if (recipesWrapper) recipesWrapper.style.display = 'none';
+
+      fetch(href, { credentials: 'same-origin' }).then(function(resp) {
+        return resp.text();
+      }).then(function(html) {
+        try {
+          var parser = new DOMParser();
+          var doc = parser.parseFromString(html, 'text/html');
+          // Try to extract the ingredients heading and the table wrapper
+          var heading = doc.querySelector('h3');
+          var tableDiv = doc.querySelector('.table-responsive');
+          var extra = '';
+          if (heading) extra += '<div style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">' + heading.outerHTML + '</div>';
+          if (tableDiv) extra += tableDiv.outerHTML;
+          if (extra === '') {
+            // fallback: inject full body
+            extra = doc.body ? doc.body.innerHTML : html;
+          }
+          container.innerHTML = extra;
+        } catch (e) {
+          container.innerHTML = '<div style="color:#b91c1c">Erreur lors du chargement des ingrédients.</div>';
+        }
+      }).catch(function() {
+        container.innerHTML = '<div style="color:#b91c1c">Impossible de charger les ingrédients.</div>';
+      });
+    }
+
+    document.querySelectorAll('a.btn-voir-ingredients').forEach(function(a) {
+      a.addEventListener('click', function(e) {
+        e.preventDefault();
+        var recipeName = this.dataset.recipeName || '';
+        var href = this.getAttribute('href');
+        showIngredientHero(recipeName, href);
+      });
+    });
+
+    // If page loaded with ?recette_id=... and hash '#recettes-list', auto-load ingredients
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var rid = params.get('recette_id');
+      if (rid && window.location.hash === '#recettes-list') {
+        var link = document.querySelector('a.btn-voir-ingredients[data-recipe-id="' + rid + '"]');
+        var name = link ? (link.dataset.recipeName || '') : '';
+        var href = link ? link.getAttribute('href') : 'recette+ingredient/View/FrontOffice/ingredient/index.php?recette_id=' + encodeURIComponent(rid);
+        showIngredientHero(name, href);
+      }
+    } catch (e) { /* ignore */ }
+  });
+  </script>
 
 </body>
 
